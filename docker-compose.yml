@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+    env_file:
+      - ./.env
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    depends_on:
+      - mosquitto
+    ports:
+      - "80:1880"
+    volumes:
+      - ./nodered:/data
+    restart: unless-stopped
+    env_file:
+      - ./.env
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    depends_on:
+      - mosquitto
+    ports:
+      - "8123:8123"
+    volumes:
+      - ./homeassistant:/config
+    restart: unless-stopped
+    privileged: true
+    env_file:
+      - ./.env
+
+networks:
+  default:
+    name: home_automation_net
