@@ -1,0 +1,20 @@
+esphome:
+  name: my-device
+  friendly_name: My Device
+
+esp8266:
+  board: nodemcuv2
+
+# Wi-Fi credentials (you can override with secrets.yaml if you prefer)
+wifi:
+  ssid: "YourWiFiSSID"
+  password: "YourWiFiPassword"
+
+# MQTT integration
+mqtt:
+  broker: ${MQTT_BROKER}
+  port: ${MQTT_PORT}
+
+logger:
+api:
+ota:

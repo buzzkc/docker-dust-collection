@@ -1,0 +1,14 @@
+# ========== Home Assistant Base Configuration ==========
+default_config:
+
+# Set timezone from environment (optional)
+homeassistant:
+  name: Home Assistant
+  time_zone: ${TZ}
+
+# Enable MQTT integration and point to Mosquitto container
+mqtt:
+  broker: ${MQTT_BROKER}
+  port: ${MQTT_PORT}
+  discovery: true
+  discovery_prefix: homeassistant
