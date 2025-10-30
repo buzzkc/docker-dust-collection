@@ -19,7 +19,7 @@ services:
     depends_on:
       - mosquitto
     ports:
-      - "80:1880"
+      - "1880:1880"
     volumes:
       - ./nodered:/data
     restart: unless-stopped
@@ -47,12 +47,36 @@ services:
     depends_on:
       - homeassistant
     ports:
-      - "${ESPHOME_PORT}:6052"
+      - "6052:6052"
     volumes:
       - ./esphome:/config
     restart: unless-stopped
     env_file:
       - ./.env
+      
+  mqttx:
+    image: emqx/mqttx-web:latest
+    container_name: mqttx
+    restart: unless-stopped
+    ports:
+      - "8083:80"
+    depends_on:
+      - mosquitto
+  
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/index.html:/usr/share/nginx/html/index.html:ro
+    depends_on:
+      - nodered
+      - homeassistant
+      - esphome
+      - mqttx
 
 networks:
   default:
