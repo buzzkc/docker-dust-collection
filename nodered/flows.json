@@ -430,7 +430,7 @@
         "type": "mqtt-broker",
         "name": "MQTT Server",
         "broker": "mosquitto",
-        "port": "1833",
+        "port": "1883",
         "clientid": "nodered",
         "autoConnect": true,
         "usetls": false,
