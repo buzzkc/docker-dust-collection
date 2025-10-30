@@ -55,13 +55,14 @@ services:
       - ./.env
       
   mqtt-explorer:
-    image: mqtt-explorer/web:latest
+    image: smeagolworms4/mqtt-explorer
     container_name: mqtt_explorer_web
     restart: unless-stopped
     ports:
-      - "8083:8080"   # internal port 8080 mapped to host 8083
+      - "8083:4000"   # internal port 8080 mapped to host 8083
     depends_on:
       - mosquitto
+      
   nginx:
     image: nginx:latest
     container_name: nginx
