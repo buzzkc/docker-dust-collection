@@ -30,6 +30,8 @@ project-root/
 │   ├── config/              # Mosquitto configuration files
 │   ├── data/                # persistent broker data
 │   └── log/                 # broker logs
+├── mqtt-explorer/			 # MQTT Explorer Web UI
+│   └── config/             
 └── README.md                # project documentation
 ```
 
