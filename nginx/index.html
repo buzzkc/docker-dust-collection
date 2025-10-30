@@ -28,10 +28,31 @@
 </head>
 <body>
   <h1>My Smart Home Dashboard</h1>
-  <a href="http://homeassistant:8123" target="_blank">Home Assistant</a>
-  <a href="http://nodered:1880" target="_blank">Node-RED</a>
-  <a href="http://esphome:6052" target="_blank">ESPHome</a>
-  <a href="http://mqttx:8083" target="_blank">MQTTX Web</a>
-  <a href="http://nginx:9000" target="_blank">Portainer</a>
+
+  <div id="links"></div>
+
+  <script>
+    // Dynamically generate links based on current host
+    const host = window.location.hostname;
+    const protocol = window.location.protocol;
+
+    const services = [
+      { name: 'Home Assistant', port: 8123 },
+      { name: 'Node-RED', port: 1880 },
+      { name: 'ESPHome', port: 6052 },
+      { name: 'MQTTX Web', port: 8083 },
+	  { name: 'Portainer', port: 9000 },
+    ];
+
+    const linksDiv = document.getElementById('links');
+    services.forEach(service => {
+      const url = `${protocol}//${host}:${service.port}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = "_blank";
+      link.textContent = service.name;
+      linksDiv.appendChild(link);
+    });
+  </script>
 </body>
 </html>
