@@ -7,8 +7,8 @@ homeassistant:
   time_zone: America/Chicago
 
 # Enable MQTT integration and point to Mosquitto container
-mqtt:
-  broker: mosquitto
-  port: 1883
-  discovery: true
-  discovery_prefix: homeassistant
+#mqtt:
+#  broker: mosquitto
+#  port: 1883
+#  discovery: true
+#  discovery_prefix: homeassistant
