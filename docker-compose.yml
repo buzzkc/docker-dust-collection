@@ -54,15 +54,14 @@ services:
     env_file:
       - ./.env
       
-  mqttx:
-    image: emqx/mqttx-web:latest
-    container_name: mqttx
+  mqtt-explorer:
+    image: mqtt-explorer/web:latest
+    container_name: mqtt_explorer_web
     restart: unless-stopped
     ports:
-      - "8083:80"
+      - "8083:8080"   # internal port 8080 mapped to host 8083
     depends_on:
       - mosquitto
-  
   nginx:
     image: nginx:latest
     container_name: nginx
@@ -76,7 +75,7 @@ services:
       - nodered
       - homeassistant
       - esphome
-      - mqttx
+      - mqtt-explorer
 
 networks:
   default:

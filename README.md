@@ -6,7 +6,7 @@ This project sets up a self-hosted IoT environment using Docker Compose, includi
 - Node-RED — Visual automation and logic flows
 - ESPHome — Device management and firmware for ESP devices
 - EMQX MQTT Broker — MQTT messaging server
-- MQTTX Web — Web-based MQTT client
+- MQTT Explorer Web — Web-based MQTT client
 - Dashboard (NGINX) — Simple homepage with links to all services
 
 Specifically the environment is for controlling a dust collection system I run from ESP devices setup from ESPHome.
@@ -15,11 +15,22 @@ Specifically the environment is for controlling a dust collection system I run f
 
 ```
 .
-├── docker-compose.yml
-├── .env
+project-root/
+├── .env                     # environment variables for all containers
+├── docker-compose.yml       # main Docker Compose stack
 ├── nginx/
-│   └── index.html
-└── README.md
+│   └── index.html           # dashboard homepage with links to services
+├── nodered/
+│   └── flows.json           # Node-RED flows
+├── homeassistant/
+│   └── configuration.yaml   # Home Assistant config
+├── esphome/
+│   └── ...                  # ESPHome device configs
+├── mosquitto/
+│   ├── config/              # Mosquitto configuration files
+│   ├── data/                # persistent broker data
+│   └── log/                 # broker logs
+└── README.md                # project documentation
 ```
 
 ## Configuration
@@ -85,7 +96,7 @@ http://<your-server-ip>
 | Home Assistant    | 8123  |
 | Node-RED          | 1880  |
 | ESPHome           | 6052  |
-| MQTTX Web         | 8083  |
+| MQTT Explorer Web       | 8083  |
 
 ## Data Persistence
 
