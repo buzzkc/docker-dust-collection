@@ -4,7 +4,7 @@ default_config:
 # Set timezone from environment (optional)
 homeassistant:
   name: Home Assistant
-  time_zone: ${TZ}
+  time_zone: America/Chicago
 
 # Enable MQTT integration and point to Mosquitto container
 mqtt:

@@ -37,9 +37,10 @@ services:
       - ./homeassistant:/config
     restart: unless-stopped
     privileged: true
+    
     env_file:
       - ./.env
-   
+      
   esphome:
     image: esphome/esphome:latest
     container_name: esphome
