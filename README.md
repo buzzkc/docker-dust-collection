@@ -9,6 +9,8 @@ This project sets up a self-hosted IoT environment using Docker Compose, includi
 - MQTTX Web — Web-based MQTT client
 - Dashboard (NGINX) — Simple homepage with links to all services
 
+Specifically the environment is for controlling a dust collection system I run from ESP devices setup from ESPHome.
+
 ## Folder Structure
 
 ```
@@ -21,6 +23,23 @@ This project sets up a self-hosted IoT environment using Docker Compose, includi
 ```
 
 ## Configuration
+
+### Quick Start
+
+```bash
+# Clone repo
+git clone https://github.com/yourusername/docker-dust-collector.git
+cd docker-dust-collector
+
+# Create .env
+cp .env_dist .env
+
+# Start stack
+docker compose up -d
+
+# Open dashboard
+http://<your-server-ip>
+```
 
 ### .env File
 
@@ -65,7 +84,7 @@ http://<your-server-ip>
 | Dashboard (NGINX) | 80    |
 | Home Assistant    | 8123  |
 | Node-RED          | 1880  |
-| ESPHome           | 6052  | |
+| ESPHome           | 6052  |
 | MQTTX Web         | 8083  |
 
 ## Data Persistence
@@ -95,32 +114,27 @@ docker volume inspect <volume_name>
 
 ## Node-RED Flow Management
 
-You'll need to updated the basetopic variable and MQTT connection information in the imported flows.
-
-There are two configuration flows that import dc-config.json, one from a URL (such as github) and one from the local nodered data folder. Whichever you choose to use, enable the trigger and set it to update every 5 minutes or so.
+- You'll need to updated the basetopic variable and MQTT connection information in the imported flows.
+- Two configuration flows exist that import dc-config.json, one from a URL (such as github) and one from the local nodered data folder. Whichever you choose to use, enable the trigger and set it to update every 5 minutes or so.
+- Updating dc-config.json can be done directly or using a visualization tool like: https://todiagram.com/editor
 
 ## Notes
 
-- Dashboard auto-detects host IP — no hardcoding URLs.
+- Dashboard auto-detects host IP — no hardcoding URLs. Update the array on index.html to add/remove services and additional links.
 - Edit `nginx/index.html` to customize links/branding.
 - Update containers with `docker compose pull`.
+- Can refer to container names (nginx, mosquitto, esphome, homeassistant, mqttx) when pointing one container to another, instead of IP, in some cases as they know about one another.
+- For MQTT messages, my default base topic is "buzzkc/dc", no trailing "/" should be used when updating this in flows or examples. Change it to your preference.
+- Searching MQTT messages you can use wild cards (# and +) in filters. The nodered flow should receive all messages using "buzzkc/dc/#".
 
-## Quick Start
+## To-Dos
+- Load all configs and ports from .env and update configurations for flows, esphome, and home assistant.
+- Add authentication to services, currently no login needed, except for HA.
+- Add web based editor for dc-config.json.
+- Add controller, tool, and gate examples to ESPHome.
+- Document MQTT messages and flows
+- Make HA optional, not really needed since ESPHome is its own container, but nice to have the extra automation/ui features.
 
-```bash
-# Clone repo
-git clone https://github.com/yourusername/docker-dust-collector.git
-cd smart-home-stack
-
-# Create .env
-cp .env.example .env
-
-# Start stack
-docker compose up -d
-
-# Open dashboard
-http://<your-server-ip>
-```
 
 **Author:** BuzzKC  
 **License:** MIT  
