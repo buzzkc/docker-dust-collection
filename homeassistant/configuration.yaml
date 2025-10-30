@@ -8,7 +8,7 @@ homeassistant:
 
 # Enable MQTT integration and point to Mosquitto container
 mqtt:
-  broker: ${MQTT_BROKER}
-  port: ${MQTT_PORT}
+  broker: mosquitto
+  port: 1833
   discovery: true
   discovery_prefix: homeassistant
