@@ -145,6 +145,7 @@ docker volume inspect <volume_name>
 | Dashboard links broken    | Check container ports and firewall |
 | MQTT connection fails     | Verify `.env` credentials match ESPHome/Home Assistant |
 | Node-RED unauthorized     | Reset password in settings.js inside Node-RED container |
+| Node-RED permissions issue| chown the nodered folder to 1000:1000 |
 
 ## Node-RED Flow Management
 
