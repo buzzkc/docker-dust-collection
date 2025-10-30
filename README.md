@@ -84,6 +84,27 @@ View logs:
 docker compose logs -f
 ```
 
+### Updating
+
+
+Stop the stack:
+
+```
+docker compose down
+```
+
+Pull Latest Updates:
+
+```
+git pull
+```
+
+Start the stack:
+
+```
+docker compose up -d
+```
+
 ## Web Interfaces
 
 Open your browser and visit your host’s IP or hostname:
