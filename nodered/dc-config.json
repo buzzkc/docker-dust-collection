@@ -1,0 +1,95 @@
+{
+    "collectors": {
+        "dc-dust-collector-shop": {
+            "branches": {
+                "branch_1": {
+                    "local_gates": [
+                        "gate1"
+                    ],
+                    "remote_gates": [
+                        "dc-gate3"
+                    ],
+                    "sensors": {
+                        "dc-table-saw": {
+                            "currentTrigger": 2,
+                            "local_gates": [
+                                "gate1",
+                                "gate2"
+                            ]
+                        },
+                        "dc-workbench": {
+                            "currentTrigger": 2,
+                            "local_gates": [
+                                "gate1"
+                            ]
+                        },
+                        "dc-cnc1": {
+                            "currentTrigger": 2,
+                            "local_gates": [
+                                "gate1"
+                            ]
+                        }
+                    }
+                },
+                "branch_2": {
+                    "local_gates": [
+                        "gate2"
+                    ],
+                    "remote_gates": [
+                        "dc-gate4"
+                    ],
+                    "sensors": {
+                        "dc-planer": {
+                            "currentTrigger": 2,
+                            "local_gates": [
+                                "gate1"
+                            ]
+                        },
+                        "dc-drill-press": {
+                            "currentTrigger": 2,
+                            "local_gates": [
+                                "gate1"
+                            ]
+                        },
+                        "dc-lathe": {
+                            "currentTrigger": 2,
+                            "local_gates": [
+                                "gate1"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "dc-dust-collector-110v": {
+            "branches": {
+                "branch_1": {
+                    "local_gates": [
+                        "gate1"
+                    ],
+                    "remote_gates": [
+						"dc-gate-1"
+                    ],
+                    "sensors": {
+                        "dc-pottery-studio": {
+                            "currentTrigger": 2.0,
+                            "local_gates": [
+                                "gate1"
+                            ],
+                            "branch_gates": [
+                            ]
+                        },
+                        "dc-cnc": {
+                            "currentTrigger": 1.8,
+                            "local_gates": [
+                                "gate1"
+                            ],
+                            "branch_gates": [
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
