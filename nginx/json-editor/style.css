@@ -55,37 +55,35 @@ body {
   height: 100%;
 }
 
+/* -------------------- NODE STYLING -------------------- */
 .node {
   position: absolute;
   border: 2px solid;
   border-radius: 6px;
-  padding: 5px;
+  padding: 8px;
   box-sizing: border-box;
   cursor: grab;
   font-size: 12px;
   z-index: 10;
   color: #333;
   width: 250px; /* fixed width */
-  background: #fff;
+  background-clip: padding-box;
 }
 
-.node[data-type="collector"] { background: #27ae60; border-color: #1e8449; color: white; }
-.node[data-type="gate"] { background: #e67e22; border-color: #d35400; color: white; }
-.node[data-type="tool"] { background: #3498db; border-color: #2980b9; color: white; }
-
-.node input {
-  font-size: 12px;
-  padding: 2px 3px;
-  border-radius: 3px;
-  border: 1px solid #ccc;
-  width: calc(100% - 6px); /* input fills width minus padding */
-  display: inline-block;
+.node[data-type="collector"] {
+  background: #27ae60;
+  border-color: #1e8449;
+  color: white;
 }
-
-.node .label-value {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 4px;
+.node[data-type="gate"] {
+  background: #e67e22;
+  border-color: #d35400;
+  color: white;
+}
+.node[data-type="tool"] {
+  background: #3498db;
+  border-color: #2980b9;
+  color: white;
 }
 
 .node .delete-btn {
@@ -107,6 +105,44 @@ body {
   padding: 0;
 }
 
+/* -------------------- NODE INPUTS -------------------- */
+.node label {
+  flex: 0 0 45%;
+  font-weight: bold;
+  font-size: 11px;
+  color: inherit;
+}
+
+.node input {
+  flex: 1 1 auto;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  width: auto;
+  min-width: 80px;
+  box-sizing: border-box;
+}
+
+.node div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+/* -------------------- CONNECTION LINES -------------------- */
+#connections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .line-delete-btn {
   position: absolute;
   width: 18px;
@@ -123,16 +159,7 @@ body {
   padding: 0;
 }
 
-#connections {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
+/* -------------------- BUTTONS -------------------- */
 #controls {
   margin-top: 20px;
   text-align: center;

@@ -35,6 +35,9 @@ function saveDiagramToLocalStorage() {
       if (n.type === 'gate') {
         const gateInput = el.querySelector('.gate-input');
         n.gateNumber = parseFloat(gateInput.value) || 0;
+      } else if (n.type === 'tool') {
+        const currentInput = el.querySelector('.current-input');
+        n.current = parseFloat(currentInput.value) || 0;
       }
 
       el.style.left = `${n.x}px`;
@@ -56,7 +59,7 @@ function loadDiagramFromLocalStorage() {
     document.querySelectorAll('.line-delete-btn').forEach(btn => btn.remove());
     document.querySelectorAll('.node').forEach(n => n.remove());
 
-    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.gateNumber));
+    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.gateNumber ?? 0, n.current ?? 0));
 
     const maxId = nodes.reduce((max, n) => Math.max(max, parseInt(n.id)), 0);
     nodeId = maxId + 1;
@@ -68,7 +71,9 @@ function loadDiagramFromLocalStorage() {
 // ---------------------- Drag from Sidebar ----------------------
 interact('.draggable').draggable({
   listeners: {
-    move: dragMoveListener,
+    move: event => {
+      // optional: highlight the dragged sidebar item
+    },
     end(event) {
       const type = event.target.dataset.type;
       const x = event.pageX - canvas.offsetLeft;
@@ -88,18 +93,8 @@ interact('.draggable').draggable({
   ]
 });
 
-function dragMoveListener(event) {
-  const target = event.target;
-  target.style.zIndex = 1000; // Always on top while dragging
-  const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-  const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-  target.style.transform = `translate(${x}px, ${y}px)`;
-  target.setAttribute('data-x', x);
-  target.setAttribute('data-y', y);
-}
-
 // ---------------------- Node Creation ----------------------
-function createNode(type, x, y, name = '', id = null, children = [], gateNumber = 0) {
+function createNode(type, x, y, name = '', id = null, children = [], gateNumber = 0, current = 0) {
   const node = document.createElement('div');
   node.classList.add('node');
   node.dataset.type = type;
@@ -115,6 +110,8 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
 
   if (type === 'gate') {
     html += `<span style="display:block;">Gate #: <input type="number" class="gate-input" value="${gateNumber}" name="gate-${node.dataset.id}"></span>`;
+  } else if (type === 'tool') {
+    html += `<span style="display:block;">Current Trigger: <input type="number" step="0.01" class="current-input" value="${current}" name="current-${node.dataset.id}"></span>`;
   }
 
   node.innerHTML = html;
@@ -126,13 +123,15 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
 
   // Input changes
   node.querySelector('.name-input').addEventListener('input', saveDiagramToLocalStorage);
-  if (type === 'gate') {
-    node.querySelector('.gate-input').addEventListener('input', saveDiagramToLocalStorage);
-  }
+  if (type === 'gate') node.querySelector('.gate-input').addEventListener('input', saveDiagramToLocalStorage);
+  if (type === 'tool') node.querySelector('.current-input').addEventListener('input', saveDiagramToLocalStorage);
 
-  // Make draggable
+  // ---------------- Canvas Node Dragging ----------------
   interact(node).draggable({
     listeners: {
+      start(event) {
+        event.target.style.zIndex = 1000;
+      },
       move(event) {
         const target = event.target;
         const dx = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
@@ -141,15 +140,23 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
         target.setAttribute('data-x', dx);
         target.setAttribute('data-y', dy);
         updateConnections();
-        saveDiagramToLocalStorage();
       },
       end(event) {
-        event.target.style.zIndex = 10; // reset z-index
+        const target = event.target;
+        const dx = parseFloat(target.getAttribute('data-x')) || 0;
+        const dy = parseFloat(target.getAttribute('data-y')) || 0;
+        target.style.left = parseFloat(target.style.left) + dx + "px";
+        target.style.top = parseFloat(target.style.top) + dy + "px";
+        target.style.transform = '';
+        target.setAttribute('data-x', 0);
+        target.setAttribute('data-y', 0);
+        target.style.zIndex = 10;
+        saveDiagramToLocalStorage();
       }
     }
   });
 
-  // Dropzone
+  // ---------------- Dropzone ----------------
   interact(node).dropzone({
     accept: '.node',
     overlap: 0.5,
@@ -163,16 +170,6 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
         return;
       }
 
-      // Check if connection is valid first
-      const parent = nodes.find(n => n.id === parentId);
-      const child = nodes.find(n => n.id === childId);
-      if (!parent || !child) return;
-
-      if (!allowedChildren[parent.type].includes(child.type)) {
-        alert(`Cannot add ${child.type} to ${parent.type}`);
-        return; // exit without removing existing connections
-      }
-
       connectNodes(parentId, childId);
       saveDiagramToLocalStorage();
     }
@@ -181,17 +178,37 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
   canvas.appendChild(node);
 
   if (!id) {
-    nodes.push({ id: node.dataset.id, type, name, x, y, children: [], gateNumber: type === 'gate' ? gateNumber : undefined });
+    nodes.push({
+      id: node.dataset.id,
+      type,
+      name,
+      x,
+      y,
+      children: [],
+      gateNumber: type === 'gate' ? gateNumber : undefined,
+      current: type === 'tool' ? current : undefined
+    });
     saveDiagramToLocalStorage();
   } else {
     const existing = nodes.find(n => n.id === id);
-    if (!existing) nodes.push({ id, type, name, x, y, children, gateNumber: type === 'gate' ? gateNumber : undefined });
+    if (!existing) {
+      nodes.push({
+        id,
+        type,
+        name,
+        x,
+        y,
+        children,
+        gateNumber: type === 'gate' ? gateNumber : undefined,
+        current: type === 'tool' ? current : undefined
+      });
+    }
   }
 
   return node;
 }
 
-// ---------------------- Descendant Check ----------------------
+// ---------------- Descendant Check ----------------
 function isDescendant(parentId, childId) {
   const parent = nodes.find(n => n.id === parentId);
   if (!parent) return false;
@@ -199,24 +216,29 @@ function isDescendant(parentId, childId) {
   return parent.children.some(cId => isDescendant(cId, childId));
 }
 
-// ---------------------- Connect Nodes ----------------------
+// ---------------- Connect Nodes ----------------
 function connectNodes(parentId, childId) {
   if (parentId === childId) return;
   const parent = nodes.find(n => n.id === parentId);
   const child = nodes.find(n => n.id === childId);
   if (!parent || !child) return;
 
-  // Only remove child from existing parent AFTER validation
+  // Only one parent allowed per child
   nodes.forEach(n => {
     n.children = n.children.filter(cId => cId !== childId);
   });
+
+  if (!allowedChildren[parent.type].includes(child.type)) {
+    alert(`Cannot add ${child.type} to ${parent.type}`);
+    return;
+  }
 
   parent.children.push(childId);
   updateConnections();
   saveDiagramToLocalStorage();
 }
 
-// ---------------------- Delete / Cascade ----------------------
+// ---------------- Delete / Cascade ----------------
 function confirmAndDelete(id) {
   const node = nodes.find(n => n.id === id);
   if (!node) return;
@@ -228,18 +250,15 @@ function confirmAndDelete(id) {
     ? `This will delete "${node.type}" and ${count} descendant object${count > 1 ? 's' : ''}. Continue?`
     : `Delete "${node.type}"?`;
 
-  if (confirm(message)) {
-    deleteCascade(id);
-  }
+  if (confirm(message)) deleteCascade(id);
 }
 
 function getAllDescendants(id) {
   const node = nodes.find(n => n.id === id);
   if (!node) return [];
-
   let descendants = [...node.children];
-  node.children.forEach(childId => {
-    descendants = descendants.concat(getAllDescendants(childId));
+  node.children.forEach(cId => {
+    descendants = descendants.concat(getAllDescendants(cId));
   });
   return descendants;
 }
@@ -261,7 +280,7 @@ function deleteCascade(id) {
   saveDiagramToLocalStorage();
 }
 
-// ---------------------- Update Connections ----------------------
+// ---------------- Update Connections ----------------
 function updateConnections() {
   connectionsSvg.innerHTML = '';
   document.querySelectorAll('.line-delete-btn').forEach(btn => btn.remove());
@@ -310,7 +329,7 @@ function updateConnections() {
   });
 }
 
-// ---------------------- Export / Import ----------------------
+// ---------------- Export / Import ----------------
 exportBtn.onclick = () => {
   saveDiagramToLocalStorage();
   const json = JSON.stringify(nodes, null, 2);
@@ -330,7 +349,7 @@ importFile.onchange = e => {
     connectionsSvg.innerHTML = '';
     document.querySelectorAll('.node').forEach(n => n.remove());
     document.querySelectorAll('.line-delete-btn').forEach(btn => btn.remove());
-    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.gateNumber ?? 0));
+    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.gateNumber ?? 0, n.current ?? 0));
 
     const maxId = nodes.reduce((max, n) => Math.max(max, parseInt(n.id)), 0);
     nodeId = maxId + 1;
@@ -341,7 +360,7 @@ importFile.onchange = e => {
   reader.readAsText(file);
 };
 
-// ---------------------- Clear Canvas ----------------------
+// ---------------- Clear Canvas ----------------
 clearBtn.addEventListener('click', () => {
   if (confirm('Clear the entire canvas? This cannot be undone.')) {
     nodes = [];
@@ -353,7 +372,7 @@ clearBtn.addEventListener('click', () => {
   }
 });
 
-// ---------------------- Load on Page Load ----------------------
+// ---------------- Load on Page Load ----------------
 window.addEventListener('DOMContentLoaded', () => {
   loadDiagramFromLocalStorage();
 });
