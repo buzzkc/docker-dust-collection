@@ -149,9 +149,10 @@ docker volume inspect <volume_name>
 
 ## Node-RED Flow Management
 
-- You'll need to updated the basetopic variable and MQTT connection information in the imported flows.
-- Two configuration flows exist that import dc-config.json, one from a URL (such as github) and one from the local nodered data folder. Whichever you choose to use, enable the trigger and set it to update every 5 minutes or so.
-- Updating dc-config.json can be done directly or using a visualization tool like: https://todiagram.com/editor
+- You'll need to updated the basetopic variable and MQTT connection information in the imported flows, at least the MQTT Broker IP address.
+- ~~Two configuration flows exist that import dc-config.json, one from a URL (such as github) and one from the local nodered data folder. Whichever you choose to use, enable the trigger and set it to update every 5 minutes or so.~~
+- ~~Updating dc-config.json can be done directly or using a visualization tool like: https://todiagram.com/editor~~
+- Use configuration page to layout dust collection system, click Save Configuration to export configuration to NodeRed. The Configuration URL should just be the url for the NodeRed instance, no trailing slash: http://<NODE_RED_IP>:<NODE_RED_PORT> 
 
 ## Notes
 
@@ -165,10 +166,11 @@ docker volume inspect <volume_name>
 ## To-Dos
 - Load all configs and ports from .env and update configurations for flows, esphome, and home assistant.
 - Add authentication to services, currently no login needed, except for HA.
-- Add web based editor for dc-config.json.
+- ~~Add web based editor for dc-config.json.~~
 - Add controller, tool, and gate examples to ESPHome.
 - Document MQTT messages and flows
 - Make HA optional, not really needed since ESPHome is its own container, but nice to have the extra automation/ui features.
+- Update gates on devices to control independently.
 
 
 **Author:** BuzzKC  
