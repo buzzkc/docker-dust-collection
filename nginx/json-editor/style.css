@@ -25,7 +25,6 @@ body {
 }
 
 .draggable {
-  background: #3498db;
   color: white;
   padding: 8px;
   margin: 5px 0;
@@ -38,6 +37,10 @@ body {
 .draggable:active {
   cursor: grabbing;
 }
+
+.draggable.collector { background: #27ae60; } /* green */
+.draggable.gate { background: #e67e22; }      /* orange */
+.draggable.tool { background: #3498db; }      /* blue */
 
 #canvas-container {
   flex: 1;
@@ -54,24 +57,37 @@ body {
 
 .node {
   position: absolute;
-  background: #fff;
-  border: 2px solid #3498db;
+  border: 2px solid;
   border-radius: 6px;
   padding: 5px;
   box-sizing: border-box;
   cursor: grab;
   font-size: 12px;
   z-index: 10;
+  color: #333;
+  width: 250px; /* fixed width */
+  background: #fff;
 }
+
+.node[data-type="collector"] { background: #27ae60; border-color: #1e8449; color: white; }
+.node[data-type="gate"] { background: #e67e22; border-color: #d35400; color: white; }
+.node[data-type="tool"] { background: #3498db; border-color: #2980b9; color: white; }
 
 .node input {
   font-size: 12px;
   padding: 2px 3px;
   border-radius: 3px;
   border: 1px solid #ccc;
+  width: calc(100% - 6px); /* input fills width minus padding */
+  display: inline-block;
 }
 
-/* Object delete button (on node) */
+.node .label-value {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 4px;
+}
+
 .node .delete-btn {
   position: absolute;
   top: -8px;
@@ -85,13 +101,12 @@ body {
   cursor: pointer;
   font-weight: bold;
   font-size: 12px;
-  z-index: 20;          /* above nodes */
+  z-index: 20;
   text-align: center;
-  line-height: 18px;    /* vertically center the × */
+  line-height: 18px;
   padding: 0;
 }
 
-/* Line delete button */
 .line-delete-btn {
   position: absolute;
   width: 18px;
@@ -100,11 +115,11 @@ body {
   color: white;
   border-radius: 50%;
   text-align: center;
-  line-height: 18px;    /* vertically center the × */
+  line-height: 18px;
   cursor: pointer;
   font-weight: bold;
   font-size: 12px;
-  z-index: 15;           /* above lines, below node delete buttons */
+  z-index: 15;
   padding: 0;
 }
 

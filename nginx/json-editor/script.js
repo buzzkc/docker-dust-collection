@@ -3,6 +3,7 @@ const connectionsSvg = document.getElementById('connections');
 const exportBtn = document.getElementById('exportBtn');
 const importFile = document.getElementById('importFile');
 
+// Add Clear Canvas button dynamically
 const clearBtn = document.createElement('button');
 clearBtn.textContent = 'Clear Canvas';
 clearBtn.style.marginTop = '10px';
@@ -11,15 +12,13 @@ document.getElementById('sidebar').appendChild(clearBtn);
 let nodes = [];
 let nodeId = 0;
 
-// ---------------- Updated hierarchy ----------------
 const allowedChildren = {
-  collector: ["tool", "local_gate", "remote_gate"],
-  local_gate: ["tool", "remote_gate"],
-  remote_gate: ["tool", "local_gate"],
-  tool: ["local_gate"]
+  collector: ["gate", "tool"],
+  gate: ["gate", "tool"],
+  tool: []
 };
 
-// ---------------- Local Storage ----------------
+// ---------------------- Local Storage ----------------------
 function saveDiagramToLocalStorage() {
   nodes.forEach(n => {
     const el = document.querySelector(`.node[data-id='${n.id}']`);
@@ -33,9 +32,9 @@ function saveDiagramToLocalStorage() {
       n.y = parseFloat(el.style.top) + dy;
       n.name = el.querySelector('.name-input').value;
 
-      if (n.type === 'tool') {
-        const currentInput = el.querySelector('.current-input');
-        n.current = parseFloat(currentInput.value) || 0;
+      if (n.type === 'gate') {
+        const gateInput = el.querySelector('.gate-input');
+        n.gateNumber = parseFloat(gateInput.value) || 0;
       }
 
       el.style.left = `${n.x}px`;
@@ -57,7 +56,7 @@ function loadDiagramFromLocalStorage() {
     document.querySelectorAll('.line-delete-btn').forEach(btn => btn.remove());
     document.querySelectorAll('.node').forEach(n => n.remove());
 
-    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.current));
+    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.gateNumber));
 
     const maxId = nodes.reduce((max, n) => Math.max(max, parseInt(n.id)), 0);
     nodeId = maxId + 1;
@@ -66,7 +65,7 @@ function loadDiagramFromLocalStorage() {
   }
 }
 
-// ---------------- Drag from Sidebar ----------------
+// ---------------------- Drag from Sidebar ----------------------
 interact('.draggable').draggable({
   listeners: {
     move: dragMoveListener,
@@ -79,11 +78,19 @@ interact('.draggable').draggable({
       event.target.removeAttribute('data-x');
       event.target.removeAttribute('data-y');
     }
-  }
+  },
+  inertia: true,
+  modifiers: [
+    interact.modifiers.restrictRect({
+      restriction: 'parent',
+      endOnly: true
+    })
+  ]
 });
 
 function dragMoveListener(event) {
   const target = event.target;
+  target.style.zIndex = 1000; // Always on top while dragging
   const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
   const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
   target.style.transform = `translate(${x}px, ${y}px)`;
@@ -91,64 +98,39 @@ function dragMoveListener(event) {
   target.setAttribute('data-y', y);
 }
 
-// ---------------- Node Resizing ----------------
-function resizeNode(nodeEl) {
-  const nameInput = nodeEl.querySelector('.name-input');
-  const currentInput = nodeEl.querySelector('.current-input');
-
-  let width = 80;
-
-  if (nameInput) {
-    const nameWidth = Math.max(80, nameInput.value.length * 8);
-    width = Math.max(width, nameWidth + 60);
-  }
-
-  if (currentInput) {
-    const currentWidth = Math.max(60, currentInput.value.toString().length * 8);
-    width = Math.max(width, currentWidth + 60);
-  }
-
-  nodeEl.style.width = width + 'px';
-}
-
-// ---------------- Node Creation ----------------
-function createNode(type, x, y, name = '', id = null, children = [], current = 0) {
+// ---------------------- Node Creation ----------------------
+function createNode(type, x, y, name = '', id = null, children = [], gateNumber = 0) {
   const node = document.createElement('div');
   node.classList.add('node');
   node.dataset.type = type;
   node.dataset.id = id ?? nodeId++;
   node.style.left = `${x}px`;
   node.style.top = `${y}px`;
+  node.style.width = '250px'; // fixed width
+  node.style.zIndex = 10;
 
   let html = `<button class="delete-btn">×</button>
-              <strong>${type}</strong><br>
-              <span>Name: <input class="name-input" value="${name}" placeholder="name" style="width:120px;"></span><br>`;
+              <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br>
+              <span style="display:block;">Name: <input class="name-input" value="${name}" placeholder="name" name="name-${node.dataset.id}"></span>`;
 
-  if (type === 'tool') {
-    html += `<span>Current: <input class="current-input" type="number" step="0.01" value="${current}" placeholder="Current" style="width:60px;"></span><br>`;
+  if (type === 'gate') {
+    html += `<span style="display:block;">Gate #: <input type="number" class="gate-input" value="${gateNumber}" name="gate-${node.dataset.id}"></span>`;
   }
 
   node.innerHTML = html;
 
+  // Delete button
   node.querySelector('.delete-btn').addEventListener('click', () => {
     confirmAndDelete(node.dataset.id);
   });
 
-  node.querySelector('.name-input').addEventListener('input', () => {
-    saveDiagramToLocalStorage();
-    resizeNode(node);
-  });
-
-  if (type === 'tool') {
-    const currentInput = node.querySelector('.current-input');
-    currentInput.addEventListener('input', () => {
-      saveDiagramToLocalStorage();
-      resizeNode(node);
-    });
+  // Input changes
+  node.querySelector('.name-input').addEventListener('input', saveDiagramToLocalStorage);
+  if (type === 'gate') {
+    node.querySelector('.gate-input').addEventListener('input', saveDiagramToLocalStorage);
   }
 
-  resizeNode(node);
-
+  // Make draggable
   interact(node).draggable({
     listeners: {
       move(event) {
@@ -160,16 +142,37 @@ function createNode(type, x, y, name = '', id = null, children = [], current = 0
         target.setAttribute('data-y', dy);
         updateConnections();
         saveDiagramToLocalStorage();
+      },
+      end(event) {
+        event.target.style.zIndex = 10; // reset z-index
       }
     }
   });
 
+  // Dropzone
   interact(node).dropzone({
     accept: '.node',
     overlap: 0.5,
     ondrop: event => {
       const parentId = node.dataset.id;
       const childId = event.relatedTarget.dataset.id;
+
+      // Prevent dropping parent onto its descendant
+      if (isDescendant(childId, parentId)) {
+        alert("Cannot drop a parent onto its own child or descendant!");
+        return;
+      }
+
+      // Check if connection is valid first
+      const parent = nodes.find(n => n.id === parentId);
+      const child = nodes.find(n => n.id === childId);
+      if (!parent || !child) return;
+
+      if (!allowedChildren[parent.type].includes(child.type)) {
+        alert(`Cannot add ${child.type} to ${parent.type}`);
+        return; // exit without removing existing connections
+      }
+
       connectNodes(parentId, childId);
       saveDiagramToLocalStorage();
     }
@@ -178,36 +181,42 @@ function createNode(type, x, y, name = '', id = null, children = [], current = 0
   canvas.appendChild(node);
 
   if (!id) {
-    nodes.push({ id: node.dataset.id, type, name, x, y, children: [], current: type === 'tool' ? current : undefined });
+    nodes.push({ id: node.dataset.id, type, name, x, y, children: [], gateNumber: type === 'gate' ? gateNumber : undefined });
     saveDiagramToLocalStorage();
   } else {
     const existing = nodes.find(n => n.id === id);
-    if (!existing) nodes.push({ id, type, name, x, y, children, current: type === 'tool' ? current : undefined });
+    if (!existing) nodes.push({ id, type, name, x, y, children, gateNumber: type === 'gate' ? gateNumber : undefined });
   }
 
   return node;
 }
 
-// ---------------- Connect Nodes ----------------
+// ---------------------- Descendant Check ----------------------
+function isDescendant(parentId, childId) {
+  const parent = nodes.find(n => n.id === parentId);
+  if (!parent) return false;
+  if (parent.children.includes(childId)) return true;
+  return parent.children.some(cId => isDescendant(cId, childId));
+}
+
+// ---------------------- Connect Nodes ----------------------
 function connectNodes(parentId, childId) {
   if (parentId === childId) return;
   const parent = nodes.find(n => n.id === parentId);
   const child = nodes.find(n => n.id === childId);
   if (!parent || !child) return;
 
-  if (!allowedChildren[parent.type].includes(child.type)) {
-    alert(`❌ Cannot add ${child.type} to ${parent.type}`);
-    return;
-  }
+  // Only remove child from existing parent AFTER validation
+  nodes.forEach(n => {
+    n.children = n.children.filter(cId => cId !== childId);
+  });
 
-  if (!parent.children.includes(childId)) {
-    parent.children.push(childId);
-    updateConnections();
-    saveDiagramToLocalStorage();
-  }
+  parent.children.push(childId);
+  updateConnections();
+  saveDiagramToLocalStorage();
 }
 
-// ---------------- Delete / Cascade ----------------
+// ---------------------- Delete / Cascade ----------------------
 function confirmAndDelete(id) {
   const node = nodes.find(n => n.id === id);
   if (!node) return;
@@ -227,6 +236,7 @@ function confirmAndDelete(id) {
 function getAllDescendants(id) {
   const node = nodes.find(n => n.id === id);
   if (!node) return [];
+
   let descendants = [...node.children];
   node.children.forEach(childId => {
     descendants = descendants.concat(getAllDescendants(childId));
@@ -251,7 +261,7 @@ function deleteCascade(id) {
   saveDiagramToLocalStorage();
 }
 
-// ---------------- Update Connections ----------------
+// ---------------------- Update Connections ----------------------
 function updateConnections() {
   connectionsSvg.innerHTML = '';
   document.querySelectorAll('.line-delete-btn').forEach(btn => btn.remove());
@@ -284,21 +294,10 @@ function updateConnections() {
       const deleteBtn = document.createElement('div');
       deleteBtn.classList.add('line-delete-btn');
       deleteBtn.textContent = '×';
+      deleteBtn.style.position = 'absolute';
       deleteBtn.style.left = `${mx - 8}px`;
       deleteBtn.style.top = `${my - 8}px`;
-
-      deleteBtn.style.width = '16px';
-      deleteBtn.style.height = '16px';
-      deleteBtn.style.background = 'red';
-      deleteBtn.style.color = 'white';
-      deleteBtn.style.fontWeight = 'bold';
-      deleteBtn.style.fontSize = '14px';
-      deleteBtn.style.textAlign = 'center';
-      deleteBtn.style.lineHeight = '16px';
-      deleteBtn.style.borderRadius = '50%';
-      deleteBtn.style.cursor = 'pointer';
-      deleteBtn.style.position = 'absolute';
-      deleteBtn.style.zIndex = 15;
+      canvas.appendChild(deleteBtn);
 
       deleteBtn.addEventListener('click', () => {
         if (confirm(`Remove connection from ${parent.type} to ${nodes.find(n => n.id === childId).type}?`)) {
@@ -307,13 +306,11 @@ function updateConnections() {
           saveDiagramToLocalStorage();
         }
       });
-
-      canvas.appendChild(deleteBtn);
     });
   });
 }
 
-// ---------------- Export / Import ----------------
+// ---------------------- Export / Import ----------------------
 exportBtn.onclick = () => {
   saveDiagramToLocalStorage();
   const json = JSON.stringify(nodes, null, 2);
@@ -333,7 +330,7 @@ importFile.onchange = e => {
     connectionsSvg.innerHTML = '';
     document.querySelectorAll('.node').forEach(n => n.remove());
     document.querySelectorAll('.line-delete-btn').forEach(btn => btn.remove());
-    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.current ?? 0));
+    nodes.forEach(n => createNode(n.type, n.x, n.y, n.name, n.id, n.children, n.gateNumber ?? 0));
 
     const maxId = nodes.reduce((max, n) => Math.max(max, parseInt(n.id)), 0);
     nodeId = maxId + 1;
@@ -344,7 +341,7 @@ importFile.onchange = e => {
   reader.readAsText(file);
 };
 
-// ---------------- Clear Canvas ----------------
+// ---------------------- Clear Canvas ----------------------
 clearBtn.addEventListener('click', () => {
   if (confirm('Clear the entire canvas? This cannot be undone.')) {
     nodes = [];
@@ -356,7 +353,7 @@ clearBtn.addEventListener('click', () => {
   }
 });
 
-// ---------------- Load on Page Load ----------------
+// ---------------------- Load on Page Load ----------------------
 window.addEventListener('DOMContentLoaded', () => {
   loadDiagramFromLocalStorage();
 });

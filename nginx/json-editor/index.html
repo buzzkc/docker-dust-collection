@@ -1,31 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Drag & Drop JSON Editor</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Drag & Drop JSON Editor</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 </head>
 <body>
-<div id="container">
-  <div id="sidebar">
-    <h3>Objects</h3>
-    <div class="draggable" data-type="collector">Collector</div>
-    <div class="draggable" data-type="tool">Tool</div>
-    <div class="draggable" data-type="local_gate">Local Gate</div>
-    <div class="draggable" data-type="remote_gate">Remote Gate</div>
-
-    <div id="controls">
-      <button id="exportBtn">Export JSON</button>
-      <input type="file" id="importFile">
+  <div id="container">
+    <div id="sidebar">
+      <h3>Components</h3>
+      <div class="draggable collector" data-type="collector">Collector</div>
+      <div class="draggable gate" data-type="gate">Gate</div>
+      <div class="draggable tool" data-type="tool">Tool</div>
+      <div id="controls">
+        <button id="exportBtn">Export JSON</button>
+        <input type="file" id="importFile">
+      </div>
+    </div>
+    <div id="canvas-container">
+      <div id="canvas">
+        <svg id="connections"></svg>
+      </div>
     </div>
   </div>
-  <div id="canvas-container">
-    <svg id="connections"></svg>
-    <div id="canvas"></div>
-  </div>
-</div>
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
