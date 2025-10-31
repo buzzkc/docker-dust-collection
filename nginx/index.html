@@ -37,16 +37,17 @@
     const protocol = window.location.protocol;
 
     const services = [
-      { name: 'Home Assistant', port: 8123 },
-      { name: 'Node-RED', port: 1880 },
-      { name: 'ESPHome', port: 6052 },
-      { name: 'MQTT Explorer Web', port: 8083 },
-	  { name: 'Portainer', port: 9000 },
+      { name: 'Home Assistant', port: 8123, path: ""  },
+      { name: 'Node-RED', port: 1880, path: ""  },
+      { name: 'ESPHome', port: 6052, path: ""  },
+      { name: 'MQTT Explorer Web', port: 8083, path: ""  },
+	  { name: 'Portainer', port: 9000, path: "" },
+	  { name: 'DC Configuration', port: 80, path: "/json-editor/index.html" },
     ];
 
     const linksDiv = document.getElementById('links');
     services.forEach(service => {
-      const url = `${protocol}//${host}:${service.port}`;
+      const url = `${protocol}//${host}:${service.port}${service.path}`;
       const link = document.createElement('a');
       link.href = url;
       link.target = "_blank";
