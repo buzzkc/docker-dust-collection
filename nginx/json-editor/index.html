@@ -2,28 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Drag & Drop JSON Editor</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node Diagram</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
   <div id="container">
     <div id="sidebar">
-      <h3>Components</h3>
+      <h3>Nodes</h3>
       <div class="draggable collector" data-type="collector">Collector</div>
       <div class="draggable gate" data-type="gate">Gate</div>
       <div class="draggable tool" data-type="tool">Tool</div>
+
       <div id="controls">
+        <input type="file" id="importFile" style="display:block; margin:10px auto;">
         <button id="exportBtn">Export JSON</button>
-        <input type="file" id="importFile">
       </div>
+
     </div>
     <div id="canvas-container">
-      <div id="canvas">
-        <svg id="connections"></svg>
-      </div>
+      <div id="canvas"></div>
+      <svg id="connections"></svg>
     </div>
   </div>
-  <script src="script.js"></script>
 </body>
 </html>

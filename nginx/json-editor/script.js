@@ -9,11 +9,30 @@ clearBtn.textContent = 'Clear Canvas';
 clearBtn.style.marginTop = '10px';
 document.getElementById('sidebar').appendChild(clearBtn);
 
-// Add Export Hierarchy button dynamically
-const exportHierarchyBtn = document.createElement('button');
-exportHierarchyBtn.textContent = 'Export Hierarchy';
-exportHierarchyBtn.style.marginTop = '5px';
-document.getElementById('sidebar').appendChild(exportHierarchyBtn);
+// Add Export Configuration button dynamically
+const exportConfigBtn = document.createElement('button');
+exportConfigBtn.textContent = 'Export Configuration';
+exportConfigBtn.style.marginTop = '5px';
+document.getElementById('sidebar').appendChild(exportConfigBtn);
+
+// Add Save Configuration button dynamically
+const saveConfigBtn = document.createElement('button');
+saveConfigBtn.textContent = 'Save Configuration';
+saveConfigBtn.style.marginTop = '5px';
+document.getElementById('sidebar').appendChild(saveConfigBtn);
+
+// Add input field for configuration URL
+const urlInputLabel = document.createElement('label');
+urlInputLabel.textContent = 'Configuration URL:';
+urlInputLabel.style.display = 'block';
+urlInputLabel.style.marginTop = '10px';
+document.getElementById('sidebar').appendChild(urlInputLabel);
+
+const urlInput = document.createElement('input');
+urlInput.type = 'text';
+urlInput.style.width = '100%';
+urlInput.value = localStorage.getItem('configUrl') || '';
+document.getElementById('sidebar').appendChild(urlInput);
 
 let nodes = [];
 let nodeId = 0;
@@ -129,7 +148,7 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
   }
 
   if (type === 'tool') {
-    html += `<span style="display:block;">Current Trigger: <input type="number" step="0.01" class="current-input" value="${current}" name="current-${node.dataset.id}"></span>`;
+    html += `<span style="display:block;">Trigger Current: <input type="number" step="0.01" class="current-input" value="${current}" name="current-${node.dataset.id}"></span>`;
   }
 
   node.innerHTML = html;
@@ -171,7 +190,6 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
       const parentId = node.dataset.id;
       const childId = event.relatedTarget.dataset.id;
 
-      // Prevent dropping parent onto its descendant
       if (isDescendant(childId, parentId)) {
         alert("Cannot drop a parent onto its own child or descendant!");
         return;
@@ -210,7 +228,6 @@ function connectNodes(parentId, childId) {
   const child = nodes.find(n => n.id === childId);
   if (!parent || !child) return;
 
-  // Only allow one parent per child
   nodes.forEach(n => n.children = n.children.filter(cId => cId !== childId));
 
   if (!allowedChildren[parent.type].includes(child.type)) {
@@ -355,14 +372,14 @@ clearBtn.addEventListener('click', () => {
   }
 });
 
-// ---------------------- Export Hierarchy ----------------------
-exportHierarchyBtn.addEventListener('click', () => {
+// ---------------------- Export Configuration ----------------------
+exportConfigBtn.addEventListener('click', () => {
   const topNodes = nodes.filter(n => !nodes.some(p => p.children.includes(n.id)));
 
   function buildHierarchy(node) {
-    const obj = { name: node.name, type: node.type };
+    const obj = { name: node.name, nodeType: node.type };
     if (node.type === 'gate') obj.gateNumber = node.gateNumber;
-    if (node.type === 'tool') obj.current = node.current;
+    if (node.type === 'tool') obj.triggerCurrent = node.current;
 
     if (node.children && node.children.length > 0) {
       obj.children = node.children.map(childId => {
@@ -382,8 +399,53 @@ exportHierarchyBtn.addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'hierarchy.json';
+  a.download = 'configuration.json';
   a.click();
+});
+
+// ---------------------- Save Configuration ----------------------
+saveConfigBtn.addEventListener('click', () => {
+  let url = urlInput.value.trim();
+  if (!url) {
+    alert('Configuration URL is required!');
+    return;
+  }
+
+  if (!url.endsWith('/dc-config-update')) {
+    url = url.replace(/\/+$/,'') + '/dc-config-update';
+  }
+
+  const topNodes = nodes.filter(n => !nodes.some(p => p.children.includes(n.id)));
+
+  function buildHierarchy(node) {
+    const obj = { name: node.name, nodeType: node.type };
+    if (node.type === 'gate') obj.gateNumber = node.gateNumber;
+    if (node.type === 'tool') obj.triggerCurrent = node.current;
+
+    if (node.children && node.children.length > 0) {
+      obj.children = node.children.map(childId => {
+        const childNode = nodes.find(n => n.id === childId);
+        if (childNode) return buildHierarchy(childNode);
+        return null;
+      }).filter(Boolean);
+    }
+
+    return obj;
+  }
+
+  const hierarchy = topNodes.map(n => buildHierarchy(n));
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(hierarchy)
+  })
+    .then(res => {
+      if (res.ok) alert('Configuration saved successfully!');
+      else alert('Failed to save configuration!');
+    })
+    .catch(err => alert('Error saving configuration: ' + err));
+
+  localStorage.setItem('configUrl', urlInput.value.trim());
 });
 
 // ---------------------- Load on Page Load ----------------------
