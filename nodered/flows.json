@@ -1,15 +1,18 @@
 [
-	{
-		"id": "dust_control",
-		"type": "tab",
-		"label": "Dust Control"
-	},
+    {
+        "id": "73e45f7f5159bca6",
+        "type": "tab",
+        "label": "Dust Collection Control",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
     {
         "id": "7b10c95849c94079",
         "type": "mqtt in",
         "z": "73e45f7f5159bca6",
         "name": "Get Dust Control Messages",
-        "topic": "REPLACE_WITH_YOUR_TOPIC/#",
+        "topic": "buzzkc/dc/#",
         "qos": "2",
         "datatype": "auto-detect",
         "broker": "0e8c6944103c09e3",
@@ -17,12 +20,12 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 320,
-        "y": 200,
+        "x": 160,
+        "y": 80,
         "wires": [
             [
                 "2231ea08498a3ae7",
-                "317b5bd255f3439b"
+                "24455f8b1229c1ec"
             ]
         ]
     },
@@ -39,30 +42,9 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 840,
-        "y": 180,
+        "x": 680,
+        "y": 60,
         "wires": []
-    },
-    {
-        "id": "317b5bd255f3439b",
-        "type": "function",
-        "z": "73e45f7f5159bca6",
-        "name": "Parse Incoming Messages",
-        "func": "/**\n * To-do: \n * Send api updates to monitor/web\n * Add global config to read on startup of Flow to send out device config to each device\n */\n\nlet baseTopic = \"buzzkc/dc\"; //may get from global later\nlet toolsRunning = context.get('toolsRunning') || []; //any tools that are currently running\nlet manualOverride = context.get('manualOverride') || []; //any controllers turned on manually from button on panel.\nlet sensorMap = global.get('sensorMap');\nlet collectorMap = global.get('collectorMap');\n\nlet status = \"\"; //on, off\nlet trigger = \"\"; //source of trigger, button or current\nlet type = \"\"; //controller, tool, gate, light\nlet current = \"\"; //value of tool current draw\nlet parent = \"\"; //parent of device\nlet localGates = []; //any branch gates used by tool (not including ones it controls)\nlet branchLocalGates = [];\nlet branchRemoteGates = [];\nlet currentTrigger = \"\";\n\nlet topic = msg.topic.split(\"/\"); \n\n//convert message to string type and parse json\nlet obj = JSON.stringify(msg.payload);\nlet data = JSON.parse(obj);\n\nif (data.type) {\n    type = data.type;\n}\n\nif (data.status) {\n    status = data.status;\n}\n\nif (data.trigger) {\n    trigger = data.trigger;\n}\n\nif (data.current) {\n    current = data.current; \n}\n\nif (data.parent) {\n    parent = data.parent;\n}\n\nif (data.branch_gates) {\n    branchLocalGates = data.branch_gates;\n}\n\nif (type == \"tool\") {\n    parent = sensorMap[topic[2]]['collector'];\n    localGates = sensorMap[topic[2]]['local_gates'];\n    branchLocalGates = sensorMap[topic[2]]['branch_local_gates'];\n    branchRemoteGates = sensorMap[topic[2]]['branch_remote_gates'];\n}\n\nif (type == \"controller\") {\n    //to-do: add branches to mappings\n    //localGates = collectorMap[topic[2]][0]['local_gates'];\n    //branchLocalGates = collectorMap[topic[2]][0]['branch_local_gates'];\n    branchRemoteGates = [topic[2]][0]['branch_remote_gates'];\n}\n\n//open branch gates here\nif(Array.isArray(branchRemoteGates) && status === \"on\") {\n    for (let i = 0; i < branchRemoteGates.length; i++) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + branchRemoteGates[i] + \"/open\";\n        newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n        node.send(newMsg);\n    }\n}\n\n\n//check to see if birth message, controller may have restarted, check to see if it should be running.\nif (topic[3] && type === \"controller\" && topic[3] === \"birth\") {\n    \n    //check manualOverride for controller name\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n        newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n        node.send(newMsg);\n    }\n    \n    //check toolsRunning and see if any are for this controller, if so turn on the collector again\n    for (let i = 0; i < toolsRunning.length; i++) {\n        if(sensorMap[toolsRunning[i]][\"collector\"] === topic[2]) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + toolsRunning[i] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n            node.send(newMsg);\n        }\n    }\n\n}\n\n//controller manually turned on\nif(topic[3] && type === \"controller\" && status === \"on\" && topic[3] === \"manual\") {\n    manualOverride.push(topic[2]); //add running tool to global array.\n    context.set('manualOverride', manualOverride);\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/on\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n}\n\n//controller manually turned off\nif (topic[3] && type === \"controller\" && status === \"off\" && topic[3] === \"manual\") {\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        manualOverride.splice(index, 1); // Removes 1 element at the found index\n        context.set('manualOverride', manualOverride);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/off\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n\n    //close branch gates here\n    if (Array.isArray(branchRemoteGates)) {\n        for (let i = 0; i < branchRemoteGates.length; i++) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + branchRemoteGates[i] + \"/close\";\n            newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n            node.send(newMsg);\n        }\n    }\n}\n\nif (type === \"tool\" && status === \"on\") {\n\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index == -1) {\n        toolsRunning.push(topic[2]); //add running tool to global array.\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n    node.send(newMsg);\n}\n\nif (type === \"tool\" && status === \"off\") {\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        toolsRunning.splice(index, 1); // Removes 1 element at the found index\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    if (toolsRunning.length === 0) {\n        const parentindex = manualOverride.indexOf(parent);\n        if (parentindex === -1) {\n\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"off\"}';\n            node.send(newMsg);\n\n            //close all main branch gates here (gates should have timer built in a few seconds longer than dc shut-down)\n            if (Array.isArray(branchRemoteGates)) {\n                for (let i = 0; i < branchRemoteGates.length; i++) {\n                    let newMsg = {};\n                    newMsg.topic = baseTopic + \"/\" + branchRemoteGates[i] + \"/close\";\n                    newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n                    node.send(newMsg);\n                }\n            }\n            \n        }\n    }\n}\n\nreturn \"\";",
-        "outputs": 1,
-        "timeout": "",
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 620,
-        "y": 300,
-        "wires": [
-            [
-                "2b279b8e29b85dae",
-                "a48a661b76d4243a"
-            ]
-        ]
     },
     {
         "id": "2b279b8e29b85dae",
@@ -76,8 +58,8 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 920,
-        "y": 340,
+        "x": 760,
+        "y": 220,
         "wires": []
     },
     {
@@ -87,22 +69,124 @@
         "name": "Send Command",
         "topic": "",
         "qos": "2",
-        "retain": "false",
+        "retain": "true",
         "respTopic": "",
         "contentType": "",
         "userProps": "",
         "correl": "",
         "expiry": "",
         "broker": "0e8c6944103c09e3",
-        "x": 1100,
-        "y": 500,
+        "x": 780,
+        "y": 140,
         "wires": []
     },
     {
-        "id": "5b560574174bdf90",
+        "id": "fc32ca728c4b4bad",
+        "type": "http in",
+        "z": "73e45f7f5159bca6",
+        "name": "Receive JSON Config Updates",
+        "url": "/dc-config-update",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 320,
+        "wires": [
+            [
+                "973e25281375a8b3",
+                "d4512b2adfff9373"
+            ]
+        ]
+    },
+    {
+        "id": "973e25281375a8b3",
+        "type": "debug",
+        "z": "73e45f7f5159bca6",
+        "name": "debug 39",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "d4512b2adfff9373",
+        "type": "json",
+        "z": "73e45f7f5159bca6",
+        "name": "Convert to json string",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 420,
+        "y": 400,
+        "wires": [
+            [
+                "4351df911f882eca",
+                "649c7ced29db87e3"
+            ]
+        ]
+    },
+    {
+        "id": "4351df911f882eca",
+        "type": "debug",
+        "z": "73e45f7f5159bca6",
+        "name": "debug 40",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "649c7ced29db87e3",
+        "type": "file",
+        "z": "73e45f7f5159bca6",
+        "name": "Write to file system",
+        "filename": "/data/dc-config.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 730,
+        "y": 440,
+        "wires": [
+            [
+                "ddb4d1ae1e0fe105"
+            ]
+        ]
+    },
+    {
+        "id": "ddb4d1ae1e0fe105",
+        "type": "debug",
+        "z": "73e45f7f5159bca6",
+        "name": "debug 41",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 940,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "27f5faf70c4a58b5",
         "type": "inject",
         "z": "73e45f7f5159bca6",
-        "name": "Update DC Config",
+        "name": "Update DC Config Local",
         "props": [
             {
                 "p": "payload"
@@ -119,65 +203,40 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 190,
-        "y": 480,
+        "x": 150,
+        "y": 520,
         "wires": [
             [
-                "368686cd2ad64480"
+                "f273a54b55891170"
             ]
         ]
     },
     {
-        "id": "a9b64d5630f3d997",
+        "id": "bc6440f6ecda0a02",
         "type": "function",
         "z": "73e45f7f5159bca6",
         "name": "Set Global Config",
-        "func": "let data = msg.payload;\nlet baseTopic = \"$REPLACE_WITH_YOUR_TOPIC\";\n\n// --- STEP 1: Basic validation ---\nif (typeof data === \"string\") {\n    try {\n        data = JSON.parse(data);\n    } catch (err) {\n        node.error(\"Invalid JSON: cannot parse string\", msg);\n        return null; // stop flow\n    }\n}\n\nif (typeof data !== \"object\" || data === null) {\n    node.error(\"Invalid data: not an object\", msg);\n    return null;\n}\n\n// --- STEP 2: Structure validation ---\nif (!data.collectors || typeof data.collectors !== \"object\") {\n    node.error(\"Invalid format: missing 'collectors' object\", msg);\n    return null;\n}\n\n\n// msg.payload is now the parsed JSON\nglobal.set(\"dc_config\", data);\n\n// Two maps we’ll build\nlet sensorMap = {};\nlet collectorMap = {};\n\nfor (let collectorKey in data.collectors) {\n    let collector = data.collectors[collectorKey];\n    collectorMap[collectorKey] = { branches: {} };\n\n    for (let branchKey in collector.branches) {\n        let branch = collector.branches[branchKey];\n\n        // Extract branch info\n        let branchLocal = branch.local_gates || [];\n        let branchRemote = branch.remote_gates || [];\n        let sensorList = [];\n\n        // Process each sensor under this branch\n        for (let sensorKey in branch.sensors) {\n            let sensor = branch.sensors[sensorKey];\n            sensorList.push(sensorKey);\n\n            // Sensor-level mapping\n            sensorMap[sensorKey] = {\n                collector: collectorKey,\n                branch: branchKey,\n                currentTrigger: sensor.currentTrigger,\n                local_gates: sensor.local_gates || [],\n                branch_local_gates: branchLocal,\n                branch_remote_gates: branchRemote\n            };\n\n            //send configurations to devices, currently only current_trigger values\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + sensorKey + \"/config\";\n            newMsg.payload = '{\"currentTrigger\":\"' + sensor.currentTrigger + '\"}';\n            node.log(newMsg);\n            node.send(newMsg);\n        }\n\n        // Add branch data under controller\n        collectorMap[collectorKey].branches[branchKey] = {\n            local_gates: branchLocal,\n            remote_gates: branchRemote,\n            sensors: sensorList\n        };\n    }\n}\n\n// Save both globally for use anywhere\nglobal.set(\"sensorMap\", sensorMap);\nglobal.set(\"collectorMap\", collectorMap);\n\n// Send both to debug for verification\nmsg.topic = \"REPLACE_WITH_YOUR_TOPIC/map-update\"\nmsg.payload = { sensorMap, collectorMap };\n\nreturn msg;\n",
+        "func": "let data = msg.payload;\nlet baseTopic = \"buzzkc/dc\";\n\n// --- STEP 1: Basic validation ---\nif (typeof data === \"string\") {\n    try {\n        data = JSON.parse(data);\n    } catch (err) {\n        node.error(\"Invalid JSON: cannot parse string\", msg);\n        return null; // stop flow\n    }\n}\n\nif (typeof data !== \"object\" || data === null) {\n    node.error(\"Invalid data: not an object\", msg);\n    return null;\n}\n\n// msg.payload is now the parsed JSON\nglobal.set(\"dc_config\", data);\n\n// Two maps we’ll build\nlet sensorMap = {};\nlet collectorMap = {};\n// Recursive traversal function\nfunction traverse(nodeType, currentCollector = null, gateStack = []) {\n    // If nodeType is a collector, start a new entry\n    if (nodeType.nodeType.toLowerCase() === \"collector\") {\n        collectorMap[nodeType.name] = {\n            gates: [],\n            tools: []\n        };\n        currentCollector = nodeType.name;\n    }\n\n    // If nodeType is a gate, add to collectorMap and push to gateStack\n    if (nodeType.nodeType.toLowerCase() === \"gate\" && currentCollector) {\n        let gateEntry = { name: nodeType.name, gateNumber: nodeType.gateNumber };\n        collectorMap[currentCollector].gates.push(gateEntry);\n        gateStack.push(gateEntry);\n    }\n\n    // If nodeType is a tool, add to collectorMap and sensorMap\n    if (nodeType.nodeType.toLowerCase() === \"tool\" && currentCollector) {\n        collectorMap[currentCollector].tools.push(nodeType.name);\n\n        sensorMap[nodeType.name] = {\n            collector: currentCollector,\n            gates: [...gateStack], // clone current gateStack\n            triggerCurrent: nodeType.triggerCurrent\n        };\n\n        //send configurations to devices, currently only current_trigger values\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + nodeType.name + \"/config\";\n        newMsg.payload = '{\"currentTrigger\":\"' + nodeType.triggerCurrent + '\"}';\n        node.log(newMsg);\n        node.send(newMsg);\n    }\n\n    // Recursively process children\n    if (nodeType.children && Array.isArray(nodeType.children)) {\n        for (let child of nodeType.children) {\n            traverse(child, currentCollector, gateStack);\n        }\n    }\n\n    // After processing children, if nodeType was a gate, pop it from stack\n    if (nodeType.nodeType.toLowerCase() === \"gate\" && gateStack.length > 0) {\n        gateStack.pop();\n    }\n}\n\n// Start traversal for each top-level nodeType\nfor (let nodeType of data) {\n    traverse(nodeType);\n}\n\n// Save both globally for use anywhere\nglobal.set(\"sensorMap\", sensorMap);\nglobal.set(\"collectorMap\", collectorMap);\n\n// Send both to debug for verification\nmsg.topic = \"buzzkc/dc/map-update\"\nmsg.payload = { sensorMap, collectorMap };\n\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 610,
-        "y": 580,
+        "x": 830,
+        "y": 660,
         "wires": [
             [
-                "82682164c587ba09",
-                "452933a672836abf"
+                "d9e2fcbdd17f6934",
+                "d093e19baf70ec51"
             ]
         ]
     },
     {
-        "id": "368686cd2ad64480",
-        "type": "http request",
-        "z": "73e45f7f5159bca6",
-        "name": "Request config file",
-        "method": "GET",
-        "ret": "obj",
-        "paytoqs": "ignore",
-        "url": "${DC_CONFIG_URL}",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 410,
-        "y": 540,
-        "wires": [
-            [
-                "a9b64d5630f3d997",
-                "80c294e565d776a0"
-            ]
-        ]
-    },
-    {
-        "id": "82682164c587ba09",
+        "id": "d9e2fcbdd17f6934",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 34",
+        "name": "debug 42",
         "active": false,
         "tosidebar": true,
         "console": false,
@@ -185,193 +244,28 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 840,
-        "y": 580,
+        "x": 1060,
+        "y": 660,
         "wires": []
     },
     {
-        "id": "28a370ee4fa9ab74",
-        "type": "function",
+        "id": "ec6dc06b4f82105c",
+        "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "function 5",
-        "func": "var sensorMap = global.get(\"sensorMap\") || [];\nvar collectorMap = global.get(\"collectorMap\") || [];\n//msg.payload = data[\"controllers\"][\"dc-dust-controller-shop\"][\"branches\"][\"branch_1\"][\"sensors\"][\"dc-table-saw\"][\"local_gates\"];\nmsg.payload = [sensorMap, collectorMap];\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
+        "name": "debug 43",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
         "x": 800,
-        "y": 660,
-        "wires": [
-            [
-                "10ee27e757b1aa10"
-            ]
-        ]
-    },
-    {
-        "id": "10ee27e757b1aa10",
-        "type": "debug",
-        "z": "73e45f7f5159bca6",
-        "name": "debug 35",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1000,
-        "y": 660,
+        "y": 580,
         "wires": []
     },
     {
-        "id": "c66318e96111b29a",
-        "type": "inject",
-        "z": "73e45f7f5159bca6",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 400,
-        "y": 640,
-        "wires": [
-            [
-                "28a370ee4fa9ab74"
-            ]
-        ]
-    },
-    {
-        "id": "80c294e565d776a0",
-        "type": "debug",
-        "z": "73e45f7f5159bca6",
-        "name": "debug 36",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 580,
-        "y": 500,
-        "wires": []
-    },
-    {
-        "id": "452933a672836abf",
-        "type": "mqtt out",
-        "z": "73e45f7f5159bca6",
-        "name": "Send Configs",
-        "topic": "",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0e8c6944103c09e3",
-        "x": 820,
-        "y": 620,
-        "wires": []
-    },
-	{
-        "id": "4ccd98fc85b92ca4",
-        "type": "inject",
-        "z": "73e45f7f5159bca6",
-        "name": "Update DC Config from Local json",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 190,
-        "y": 720,
-        "wires": [
-            [
-                "718a5a9a9b5dc2f8"
-            ]
-        ]
-    },
-    {
-        "id": "6553c4245ad613fe",
-        "type": "function",
-        "z": "73e45f7f5159bca6",
-        "name": "Set Global Config",
-        "func": "let data = msg.payload;\nlet baseTopic = \"${MQTT_TOPIC}\";\n\n// --- STEP 1: Basic validation ---\nif (typeof data === \"string\") {\n    try {\n        data = JSON.parse(data);\n    } catch (err) {\n        node.error(\"Invalid JSON: cannot parse string\", msg);\n        return null; // stop flow\n    }\n}\n\nif (typeof data !== \"object\" || data === null) {\n    node.error(\"Invalid data: not an object\", msg);\n    return null;\n}\n\n// --- STEP 2: Structure validation ---\nif (!data.collectors || typeof data.collectors !== \"object\") {\n    node.error(\"Invalid format: missing 'collectors' object\", msg);\n    return null;\n}\n\n\n// msg.payload is now the parsed JSON\nglobal.set(\"dc_config\", data);\n\n// Two maps we’ll build\nlet sensorMap = {};\nlet collectorMap = {};\n\nfor (let collectorKey in data.collectors) {\n    let collector = data.collectors[collectorKey];\n    collectorMap[collectorKey] = { branches: {} };\n\n    for (let branchKey in collector.branches) {\n        let branch = collector.branches[branchKey];\n\n        // Extract branch info\n        let branchLocal = branch.local_gates || [];\n        let branchRemote = branch.remote_gates || [];\n        let sensorList = [];\n\n        // Process each sensor under this branch\n        for (let sensorKey in branch.sensors) {\n            let sensor = branch.sensors[sensorKey];\n            sensorList.push(sensorKey);\n\n            // Sensor-level mapping\n            sensorMap[sensorKey] = {\n                collector: collectorKey,\n                branch: branchKey,\n                currentTrigger: sensor.currentTrigger,\n                local_gates: sensor.local_gates || [],\n                branch_local_gates: branchLocal,\n                branch_remote_gates: branchRemote\n            };\n\n            //send configurations to devices, currently only current_trigger values\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + sensorKey + \"/config\";\n            newMsg.payload = '{\"currentTrigger\":\"' + sensor.currentTrigger + '\"}';\n            node.log(newMsg);\n            node.send(newMsg);\n        }\n\n        // Add branch data under controller\n        collectorMap[collectorKey].branches[branchKey] = {\n            local_gates: branchLocal,\n            remote_gates: branchRemote,\n            sensors: sensorList\n        };\n    }\n}\n\n// Save both globally for use anywhere\nglobal.set(\"sensorMap\", sensorMap);\nglobal.set(\"collectorMap\", collectorMap);\n\n// Send both to debug for verification\nmsg.topic = \"${MQTT_TOPIC}/map-update\"\nmsg.payload = { sensorMap, collectorMap };\n\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 590,
-        "y": 820,
-        "wires": [
-            [
-                "fcf6d1edfdf75648",
-                "b49d3d54716de60e"
-            ]
-        ]
-    },
-    {
-        "id": "fcf6d1edfdf75648",
-        "type": "debug",
-        "z": "73e45f7f5159bca6",
-        "name": "debug 37",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 820,
-        "y": 820,
-        "wires": []
-    },
-    {
-        "id": "3bc0dbb06596ed15",
-        "type": "debug",
-        "z": "73e45f7f5159bca6",
-        "name": "debug 38",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 780,
-        "y": 720,
-        "wires": []
-    },
-    {
-        "id": "b49d3d54716de60e",
+        "id": "d093e19baf70ec51",
         "type": "mqtt out",
         "z": "73e45f7f5159bca6",
         "name": "Send Configs",
@@ -384,15 +278,15 @@
         "correl": "",
         "expiry": "",
         "broker": "0e8c6944103c09e3",
-        "x": 800,
-        "y": 860,
+        "x": 1040,
+        "y": 740,
         "wires": []
     },
     {
-        "id": "718a5a9a9b5dc2f8",
+        "id": "f273a54b55891170",
         "type": "file in",
         "z": "73e45f7f5159bca6",
-        "name": "",
+        "name": "Get JSON Config File",
         "filename": "/data/dc-config.json",
         "filenameType": "str",
         "format": "utf8",
@@ -400,28 +294,49 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 410,
-        "y": 780,
+        "x": 380,
+        "y": 580,
         "wires": [
             [
-                "83cd0a2a681b844c",
-                "6553c4245ad613fe"
+                "70aec66f114611e8"
             ]
         ]
     },
     {
-        "id": "83cd0a2a681b844c",
+        "id": "70aec66f114611e8",
         "type": "json",
         "z": "73e45f7f5159bca6",
         "name": "",
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 590,
-        "y": 740,
+        "x": 630,
+        "y": 640,
         "wires": [
             [
-                "3bc0dbb06596ed15"
+                "ec6dc06b4f82105c",
+                "bc6440f6ecda0a02"
+            ]
+        ]
+    },
+    {
+        "id": "24455f8b1229c1ec",
+        "type": "function",
+        "z": "73e45f7f5159bca6",
+        "name": "New Parse Incoming Messages",
+        "func": "/**\n * To-do: \n * Send api updates to monitor/web\n * Add global config to read on startup of Flow to send out device config to each device\n */\n\nlet baseTopic = \"buzzkc/dc\"; //may get from global later\nlet toolsRunning = context.get('toolsRunning') || []; //any tools that are currently running\nlet manualOverride = context.get('manualOverride') || []; //any controllers turned on manually from button on panel.\nlet sensorMap = global.get('sensorMap');\nlet collectorMap = global.get('collectorMap');\n\nlet status = \"\"; //on, off\nlet trigger = \"\"; //source of trigger, button or current\nlet type = \"\"; //controller, tool, gate, light\nlet current = \"\"; //value of tool current draw\nlet parent = \"\"; //parent of device\nlet gates = []; //any branch gates used by tool (not including ones it controls)\nlet currentTrigger = \"\";\n\nlet topic = msg.topic.split(\"/\"); \n\n//convert message to string type and parse json\nlet obj = JSON.stringify(msg.payload);\nlet data = JSON.parse(obj);\n\nif (data.type) {\n    type = data.type;\n}\n\nif (data.status) {\n    status = data.status;\n}\n\nif (data.trigger) {\n    trigger = data.trigger;\n}\n\nif (data.current) {\n    current = data.current; \n}\n\n\nif (type == \"tool\") {\n    parent = sensorMap[topic[2]]['collector'];\n    gates = sensorMap[topic[2]]['gates'];\n}\n\nif (type == \"controller\") {\n    gates = collectorMap[topic[2]]['gates'];\n}\n\n//open branch gates here if status is on and type is controller or tool\nif(Array.isArray(gates) && status === \"on\") {\n    for (let i = 0; i < gates.length; i++) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n        newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"open\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n        node.send(newMsg);\n    }\n}\n\n\n//check to see if birth message, controller may have restarted, check to see if it should be running.\nif (topic[3] && type === \"controller\" && topic[3] === \"birth\") {\n    \n    //check manualOverride for controller name\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n        newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n        node.send(newMsg);\n    }\n    \n    //check toolsRunning and see if any are for this controller, if so turn on the collector again\n    for (let i = 0; i < toolsRunning.length; i++) {\n        if(sensorMap[toolsRunning[i]][\"collector\"] === topic[2]) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + toolsRunning[i] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n            node.send(newMsg);\n        }\n    }\n\n}\n\n//controller manually turned on\nif(topic[3] && type === \"controller\" && status === \"on\" && topic[3] === \"manual\") {\n    manualOverride.push(topic[2]); //add running tool to global array.\n    context.set('manualOverride', manualOverride);\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/on\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n}\n\n//controller manually turned off\nif (topic[3] && type === \"controller\" && status === \"off\" && topic[3] === \"manual\") {\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        manualOverride.splice(index, 1); // Removes 1 element at the found index\n        context.set('manualOverride', manualOverride);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/off\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n\n    //close branch gates here\n    if (Array.isArray(gates)) {\n        for (let i = 0; i < gates.length; i++) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n            newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n            node.send(newMsg);\n        }\n    }\n}\n\nif (type === \"tool\" && status === \"on\") {\n\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index == -1) {\n        toolsRunning.push(topic[2]); //add running tool to global array.\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n    node.send(newMsg);\n}\n\nif (type === \"tool\" && status === \"off\") {\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        toolsRunning.splice(index, 1); // Removes 1 element at the found index\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    if (toolsRunning.length === 0) {\n        const parentindex = manualOverride.indexOf(parent);\n        if (parentindex === -1) {\n\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"off\"}';\n            node.send(newMsg);\n\n            //close all main branch gates here (gates should have timer built in a few seconds longer than dc shut-down)\n            if (Array.isArray(gates)) {\n                for (let i = 0; i < gates.length; i++) {\n                    let newMsg = {};\n                    newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n                    newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n                    node.send(newMsg);\n                }\n            }\n            \n        }\n    }\n}\n\nreturn \"\";",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 140,
+        "wires": [
+            [
+                "a48a661b76d4243a",
+                "2b279b8e29b85dae"
             ]
         ]
     },
@@ -429,7 +344,7 @@
         "id": "0e8c6944103c09e3",
         "type": "mqtt-broker",
         "name": "MQTT Server",
-        "broker": "mosquitto",
+        "broker": "192.168.101.192",
         "port": "1883",
         "clientid": "nodered",
         "autoConnect": true,
