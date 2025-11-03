@@ -98,25 +98,49 @@ function loadDiagramFromLocalStorage() {
 // ---------------------- Drag from Sidebar ----------------------
 interact('.draggable').draggable({
   listeners: {
-    move: dragMoveListener,
+    start(event) {
+      // Clone the element for drag preview
+      const clone = event.target.cloneNode(true);
+      clone.id = 'drag-preview';
+      clone.style.position = 'absolute';
+      clone.style.pointerEvents = 'none';
+      clone.style.zIndex = '9999';
+      clone.style.opacity = '0.85';
+      clone.style.left = event.pageX + 'px';
+      clone.style.top = event.pageY + 'px';
+      document.body.appendChild(clone);
+      event.interaction.dragClone = clone;
+    },
+    move(event) {
+      const clone = event.interaction.dragClone;
+      if (clone) {
+        clone.style.left = event.pageX + 'px';
+        clone.style.top = event.pageY + 'px';
+      }
+    },
     end(event) {
+      const clone = event.interaction.dragClone;
+      if (clone) clone.remove();
+
+      const canvasRect = canvas.getBoundingClientRect();
       const type = event.target.dataset.type;
-      const x = event.pageX - canvas.offsetLeft;
-      const y = event.pageY - canvas.offsetTop;
-      createNode(type, x, y);
-      event.target.style.transform = '';
-      event.target.removeAttribute('data-x');
-      event.target.removeAttribute('data-y');
+      const x = event.pageX - canvasRect.left;
+      const y = event.pageY - canvasRect.top;
+
+      // Only create if dropped inside canvas
+      if (
+        event.pageX >= canvasRect.left &&
+        event.pageX <= canvasRect.right &&
+        event.pageY >= canvasRect.top &&
+        event.pageY <= canvasRect.bottom
+      ) {
+        createNode(type, x, y);
+      }
     }
   },
-  inertia: true,
-  modifiers: [
-    interact.modifiers.restrictRect({
-      restriction: 'parent',
-      endOnly: true
-    })
-  ]
+  inertia: true
 });
+
 
 function dragMoveListener(event) {
   const target = event.target;
