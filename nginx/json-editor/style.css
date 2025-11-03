@@ -57,6 +57,7 @@ body {
 
 .node {
   position: absolute;
+  width: 270px;
   border: 2px solid;
   border-radius: 6px;
   padding: 5px 10px;

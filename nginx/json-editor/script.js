@@ -153,14 +153,14 @@ function dragMoveListener(event) {
 }
 
 // ---------------------- Node Creation ----------------------
-function createNode(type, x, y, name = '', id = null, children = [], gateNumber = 0, current = 0) {
+function createNode(type, x, y, name = '', id = null, children = [], gateNumber = 1, current = 0) {
   const node = document.createElement('div');
   node.classList.add('node');
   node.dataset.type = type;
   node.dataset.id = id ?? nodeId++;
   node.style.left = `${x}px`;
   node.style.top = `${y}px`;
-  node.style.width = '250px'; // fixed width
+  node.style.width = '270px'; // fixed width
   node.style.zIndex = 10;
 
   let html = `<button class="delete-btn">×</button>
@@ -168,7 +168,7 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
               <span style="display:block;">Name: <input class="name-input" value="${name}" placeholder="name" name="name-${node.dataset.id}"></span>`;
 
   if (type === 'gate') {
-    html += `<span style="display:block;">Gate #: <input type="number" class="gate-input" value="${gateNumber}" name="gate-${node.dataset.id}"></span>`;
+    html += `<span style="display:block;">Gate #: <input type="number"  min="1" max="10" class="gate-input" value="${gateNumber}" name="gate-${node.dataset.id}"></span>`;
   }
 
   if (type === 'tool') {
@@ -190,20 +190,30 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
   // Make draggable
   interact(node).draggable({
     listeners: {
-      move(event) {
-        const target = event.target;
-        const dx = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-        const dy = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-        target.style.transform = `translate(${dx}px, ${dy}px)`;
-        target.setAttribute('data-x', dx);
-        target.setAttribute('data-y', dy);
-        updateConnections();
-        saveDiagramToLocalStorage();
-      },
-      end(event) {
-        event.target.style.zIndex = 10; // reset z-index
-      }
-    }
+		start(event) {
+		  const target = event.target;
+		  // Move node to end of parent container so it's visually on top
+		  target.parentNode.appendChild(target);
+		  target.style.zIndex = '9999'; // bring node to top while dragging
+		},
+		move(event) {
+		  const target = event.target;
+		  const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+		  const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+		  target.style.transform = `translate(${x}px, ${y}px)`;
+		  target.setAttribute('data-x', x);
+		  target.setAttribute('data-y', y);
+
+		  updateConnections(target.dataset.id);
+		},
+		end(event) {
+		  const target = event.target;
+		  target.style.zIndex = '10'; // restore normal stacking order
+		  saveDiagramToLocalStorage();   // save final position after drag
+		}
+	  },
+	  inertia: true
   });
 
   // Dropzone
@@ -211,17 +221,35 @@ function createNode(type, x, y, name = '', id = null, children = [], gateNumber 
     accept: '.node',
     overlap: 0.5,
     ondrop: event => {
-      const parentId = node.dataset.id;
-      const childId = event.relatedTarget.dataset.id;
+		const parentId = node.dataset.id;           // drop target
+		const childNode = event.relatedTarget;      // dragged node
+		const childId = childNode.dataset.id;
 
-      if (isDescendant(childId, parentId)) {
-        alert("Cannot drop a parent onto its own child or descendant!");
-        return;
-      }
+		// Prevent dropping parent onto its descendant
+		if (isDescendant(childId, parentId)) {
+		  alert("Cannot drop a parent onto its own child or descendant!");
+		  return;
+		}
 
-      connectNodes(parentId, childId);
-      saveDiagramToLocalStorage();
-    }
+		const parent = nodes.find(n => n.id === parentId);
+		const child = nodes.find(n => n.id === childId);
+		if (!parent || !child) return;
+
+		// Validate allowed children
+		if (!allowedChildren[parent.type].includes(child.type)) {
+		  alert(`Cannot add ${child.type} to ${parent.type}`);
+		  return; // KEEP existing parent relationship!
+		}
+
+		// ✅ Only remove old parent if valid
+		nodes.forEach(n => n.children = n.children.filter(cId => cId !== childId));
+
+		// Add new parent-child connection
+		parent.children.push(childId);
+
+		updateConnections();
+		saveDiagramToLocalStorage();
+	  }
   });
 
   canvas.appendChild(node);
