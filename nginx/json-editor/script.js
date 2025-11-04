@@ -3,34 +3,60 @@ const connectionsSvg = document.getElementById('connections');
 const exportBtn = document.getElementById('exportBtn');
 const importFile = document.getElementById('importFile');
 
+// Create label
+const clearLabel = document.createElement('label');
+clearLabel.textContent = 'Clear Canvas';
+clearLabel.style.display = 'block'; // make it appear above
+clearLabel.style.textAlign = 'center';
+clearLabel.style.marginTop = '10px';
+document.getElementById('sidebar').appendChild(clearLabel);
+
 // Add Clear Canvas button dynamically
 const clearBtn = document.createElement('button');
-clearBtn.textContent = 'Clear Canvas';
-clearBtn.style.marginTop = '10px';
+clearBtn.textContent = 'Clear';
+clearBtn.style.display = 'block';
+clearBtn.style.marginTop = '5px';
+clearBtn.style.margin = '0 auto'; 
 document.getElementById('sidebar').appendChild(clearBtn);
+
+// Create label
+const configLabel = document.createElement('label');
+configLabel.textContent = 'Configuration Options';
+configLabel.style.display = 'block'; // make it appear above
+configLabel.style.textAlign = 'center';
+configLabel.style.marginTop = '20px';
+document.getElementById('sidebar').appendChild(configLabel);
 
 // Add Export Configuration button dynamically
 const exportConfigBtn = document.createElement('button');
-exportConfigBtn.textContent = 'Export Configuration';
-exportConfigBtn.style.marginTop = '5px';
+exportConfigBtn.textContent = 'Download Configuration';
+exportConfigBtn.style.display = 'block';
+exportConfigBtn.style.margin = '0 auto'; 
+exportConfigBtn.style.marginTop = '10px';
 document.getElementById('sidebar').appendChild(exportConfigBtn);
 
 // Add Save Configuration button dynamically
 const saveConfigBtn = document.createElement('button');
-saveConfigBtn.textContent = 'Save Configuration';
-saveConfigBtn.style.marginTop = '5px';
+saveConfigBtn.textContent = 'Commit Configuration';
+saveConfigBtn.style.display = 'block';
+saveConfigBtn.style.margin = '0 auto'; 
+saveConfigBtn.style.marginTop = '10px';
 document.getElementById('sidebar').appendChild(saveConfigBtn);
 
 // Add input field for configuration URL
 const urlInputLabel = document.createElement('label');
-urlInputLabel.textContent = 'Configuration URL:';
+urlInputLabel.textContent = 'NodeRed URL:';
 urlInputLabel.style.display = 'block';
+urlInputLabel.style.textAlign = 'center';
 urlInputLabel.style.marginTop = '10px';
 document.getElementById('sidebar').appendChild(urlInputLabel);
 
 const urlInput = document.createElement('input');
 urlInput.type = 'text';
-urlInput.style.width = '100%';
+urlInput.style.width = '90%';
+urlInput.style.display = 'block';
+urlInput.style.margin = '0 auto'; 
+urlInput.style.marginTop = '10px';
 urlInput.value = localStorage.getItem('configUrl') || '';
 document.getElementById('sidebar').appendChild(urlInput);
 
@@ -42,6 +68,36 @@ const allowedChildren = {
   gate: ["gate", "tool"],
   tool: []
 };
+
+// URL Cleanup
+
+// Clean URL function
+function cleanUrl(url) {
+    try {
+        const u = new URL(url);
+        // Keep protocol + hostname + optional port
+        let cleaned = u.protocol + '//' + u.hostname;
+        if (u.port) cleaned += ':' + u.port;
+        return cleaned;
+    } catch (e) {
+        // If URL constructor fails, fallback to trimming slashes
+        return url.replace(/\/+$/, '');
+    }
+}
+
+// Listen for input blur (or Enter)
+urlInput.addEventListener('blur', () => {
+    urlInput.value = cleanUrl(urlInput.value);
+    localStorage.setItem('configUrl', urlInput.value); // optional: save
+});
+
+// Optional: also clean when Enter is pressed
+urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        urlInput.value = cleanUrl(urlInput.value);
+        localStorage.setItem('configUrl', urlInput.value);
+    }
+});
 
 // ---------------------- Local Storage ----------------------
 function saveDiagramToLocalStorage() {
@@ -466,7 +522,7 @@ saveConfigBtn.addEventListener('click', () => {
   if (!url.endsWith('/dc-config-update')) {
     url = url.replace(/\/+$/,'') + '/dc-config-update';
   }
-
+  loadDiagramFromLocalStorage();
   const topNodes = nodes.filter(n => !nodes.some(p => p.children.includes(n.id)));
 
   function buildHierarchy(node) {

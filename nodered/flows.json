@@ -20,7 +20,7 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 160,
+        "x": 140,
         "y": 80,
         "wires": [
             [
@@ -42,7 +42,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 680,
+        "x": 420,
         "y": 60,
         "wires": []
     },
@@ -50,16 +50,17 @@
         "id": "2b279b8e29b85dae",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 33",
+        "name": "Debug Outgoing Messages",
         "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 760,
-        "y": 220,
+        "x": 720,
+        "y": 80,
         "wires": []
     },
     {
@@ -76,8 +77,8 @@
         "correl": "",
         "expiry": "",
         "broker": "0e8c6944103c09e3",
-        "x": 780,
-        "y": 140,
+        "x": 680,
+        "y": 120,
         "wires": []
     },
     {
@@ -90,7 +91,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 150,
-        "y": 320,
+        "y": 380,
         "wires": [
             [
                 "973e25281375a8b3",
@@ -102,16 +103,17 @@
         "id": "973e25281375a8b3",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 39",
+        "name": "Debug Incoming Body",
         "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 400,
-        "y": 320,
+        "x": 420,
+        "y": 380,
         "wires": []
     },
     {
@@ -123,7 +125,7 @@
         "action": "",
         "pretty": false,
         "x": 420,
-        "y": 400,
+        "y": 420,
         "wires": [
             [
                 "4351df911f882eca",
@@ -135,16 +137,17 @@
         "id": "4351df911f882eca",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 40",
+        "name": "Debug JSON",
         "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 680,
-        "y": 400,
+        "x": 630,
+        "y": 420,
         "wires": []
     },
     {
@@ -158,8 +161,8 @@
         "createDir": false,
         "overwriteFile": "true",
         "encoding": "none",
-        "x": 730,
-        "y": 440,
+        "x": 650,
+        "y": 460,
         "wires": [
             [
                 "ddb4d1ae1e0fe105"
@@ -170,16 +173,17 @@
         "id": "ddb4d1ae1e0fe105",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 41",
+        "name": "Debug File",
         "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 940,
-        "y": 460,
+        "x": 850,
+        "y": 440,
         "wires": []
     },
     {
@@ -204,7 +208,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 150,
-        "y": 520,
+        "y": 220,
         "wires": [
             [
                 "f273a54b55891170"
@@ -223,8 +227,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 830,
-        "y": 660,
+        "x": 770,
+        "y": 300,
         "wires": [
             [
                 "d9e2fcbdd17f6934",
@@ -236,32 +240,34 @@
         "id": "d9e2fcbdd17f6934",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 42",
-        "active": false,
+        "name": "Debug Configuration Messages",
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1060,
-        "y": 660,
+        "x": 1030,
+        "y": 280,
         "wires": []
     },
     {
         "id": "ec6dc06b4f82105c",
         "type": "debug",
         "z": "73e45f7f5159bca6",
-        "name": "debug 43",
-        "active": false,
+        "name": "Debug JSON",
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "false",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 800,
-        "y": 580,
+        "x": 750,
+        "y": 260,
         "wires": []
     },
     {
@@ -278,8 +284,8 @@
         "correl": "",
         "expiry": "",
         "broker": "0e8c6944103c09e3",
-        "x": 1040,
-        "y": 740,
+        "x": 980,
+        "y": 320,
         "wires": []
     },
     {
@@ -294,8 +300,8 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 380,
-        "y": 580,
+        "x": 400,
+        "y": 240,
         "wires": [
             [
                 "70aec66f114611e8"
@@ -310,8 +316,8 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 630,
-        "y": 640,
+        "x": 590,
+        "y": 280,
         "wires": [
             [
                 "ec6dc06b4f82105c",
@@ -324,15 +330,15 @@
         "type": "function",
         "z": "73e45f7f5159bca6",
         "name": "New Parse Incoming Messages",
-        "func": "/**\n * To-do: \n * Send api updates to monitor/web\n * Add global config to read on startup of Flow to send out device config to each device\n */\n\nlet baseTopic = \"buzzkc/dc\"; //may get from global later\nlet toolsRunning = context.get('toolsRunning') || []; //any tools that are currently running\nlet manualOverride = context.get('manualOverride') || []; //any controllers turned on manually from button on panel.\nlet sensorMap = global.get('sensorMap');\nlet collectorMap = global.get('collectorMap');\n\nlet status = \"\"; //on, off\nlet trigger = \"\"; //source of trigger, button or current\nlet type = \"\"; //controller, tool, gate, light\nlet current = \"\"; //value of tool current draw\nlet parent = \"\"; //parent of device\nlet gates = []; //any branch gates used by tool (not including ones it controls)\nlet currentTrigger = \"\";\n\nlet topic = msg.topic.split(\"/\"); \n\n//convert message to string type and parse json\nlet obj = JSON.stringify(msg.payload);\nlet data = JSON.parse(obj);\n\nif (data.type) {\n    type = data.type;\n}\n\nif (data.status) {\n    status = data.status;\n}\n\nif (data.trigger) {\n    trigger = data.trigger;\n}\n\nif (data.current) {\n    current = data.current; \n}\n\n\nif (type == \"tool\") {\n    parent = sensorMap[topic[2]]['collector'];\n    gates = sensorMap[topic[2]]['gates'];\n}\n\nif (type == \"controller\") {\n    gates = collectorMap[topic[2]]['gates'];\n}\n\n//open branch gates here if status is on and type is controller or tool\nif(Array.isArray(gates) && status === \"on\") {\n    for (let i = 0; i < gates.length; i++) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n        newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"open\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n        node.send(newMsg);\n    }\n}\n\n\n//check to see if birth message, controller may have restarted, check to see if it should be running.\nif (topic[3] && type === \"controller\" && topic[3] === \"birth\") {\n    \n    //check manualOverride for controller name\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n        newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n        node.send(newMsg);\n    }\n    \n    //check toolsRunning and see if any are for this controller, if so turn on the collector again\n    for (let i = 0; i < toolsRunning.length; i++) {\n        if(sensorMap[toolsRunning[i]][\"collector\"] === topic[2]) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + toolsRunning[i] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n            node.send(newMsg);\n        }\n    }\n\n}\n\n//controller manually turned on\nif(topic[3] && type === \"controller\" && status === \"on\" && topic[3] === \"manual\") {\n    manualOverride.push(topic[2]); //add running tool to global array.\n    context.set('manualOverride', manualOverride);\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/on\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n}\n\n//controller manually turned off\nif (topic[3] && type === \"controller\" && status === \"off\" && topic[3] === \"manual\") {\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        manualOverride.splice(index, 1); // Removes 1 element at the found index\n        context.set('manualOverride', manualOverride);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/off\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n\n    //close branch gates here\n    if (Array.isArray(gates)) {\n        for (let i = 0; i < gates.length; i++) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n            newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n            node.send(newMsg);\n        }\n    }\n}\n\nif (type === \"tool\" && status === \"on\") {\n\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index == -1) {\n        toolsRunning.push(topic[2]); //add running tool to global array.\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n    node.send(newMsg);\n}\n\nif (type === \"tool\" && status === \"off\") {\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        toolsRunning.splice(index, 1); // Removes 1 element at the found index\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    if (toolsRunning.length === 0) {\n        const parentindex = manualOverride.indexOf(parent);\n        if (parentindex === -1) {\n\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"off\"}';\n            node.send(newMsg);\n\n            //close all main branch gates here (gates should have timer built in a few seconds longer than dc shut-down)\n            if (Array.isArray(gates)) {\n                for (let i = 0; i < gates.length; i++) {\n                    let newMsg = {};\n                    newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n                    newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n                    node.send(newMsg);\n                }\n            }\n            \n        }\n    }\n}\n\nreturn \"\";",
+        "func": "/**\n * To-do: \n * Send api updates to monitor/web\n * Add global config to read on startup of Flow to send out device config to each device\n */\n\nlet baseTopic = \"buzzkc/dc\"; //may get from global later\nlet toolsRunning = context.get('toolsRunning') || []; //any tools that are currently running\nlet manualOverride = context.get('manualOverride') || []; //any controllers turned on manually from button on panel.\nlet sensorMap = global.get('sensorMap');\nlet collectorMap = global.get('collectorMap');\n\nlet status = \"\"; //on, off\nlet trigger = \"\"; //source of trigger, button or current\nlet type = \"\"; //controller, tool, gate, light\nlet current = \"\"; //value of tool current draw\nlet parent = \"\"; //parent of device\nlet gates = []; //any branch gates used by tool (not including ones it controls)\nlet currentTrigger = \"\";\n\nlet topic = msg.topic.split(\"/\"); \n\n//convert message to string type and parse json\nlet obj = JSON.stringify(msg.payload);\nlet data = JSON.parse(obj);\n\nif (data.type) {\n    type = data.type;\n}\n\nif (data.status) {\n    status = data.status;\n}\n\nif (data.trigger) {\n    trigger = data.trigger;\n}\n\nif (data.current) {\n    current = data.current; \n}\n\n\nif (type == \"tool\") {\n    parent = sensorMap[topic[2]]['collector'];\n    gates = sensorMap[topic[2]]['gates'];\n}\n\nif (type == \"controller\") {\n    gates = collectorMap[topic[2]]['gates'];\n}\n\n//open branch gates here if status is on and type is controller or tool\nif(Array.isArray(gates) && status === \"on\" && (type ===\"tool\" || (type = \"collector\" && topic[3] && topic[3] === \"manual\" ))) {\n    for (let i = 0; i < gates.length; i++) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n        newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"open\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n        node.send(newMsg);\n    }\n}\n\n\n//check to see if birth message, controller may have restarted, check to see if it should be running.\nif (topic[3] && type === \"controller\" && topic[3] === \"birth\") {\n    \n    //check manualOverride for controller name\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        let newMsg = {};\n        newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n        newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n        node.send(newMsg);\n    }\n    \n    //check toolsRunning and see if any are for this controller, if so turn on the collector again\n    for (let i = 0; i < toolsRunning.length; i++) {\n        if(sensorMap[toolsRunning[i]][\"collector\"] === topic[2]) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + topic[2] + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + toolsRunning[i] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n            node.send(newMsg);\n        }\n    }\n\n}\n\n//controller manually turned on\nif(topic[3] && type === \"controller\" && status === \"on\" && topic[3] === \"manual\") {\n    manualOverride.push(topic[2]); //add running tool to global array.\n    context.set('manualOverride', manualOverride);\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/on\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n}\n\n//controller manually turned off\nif (topic[3] && type === \"controller\" && status === \"off\" && topic[3] === \"manual\") {\n    const index = manualOverride.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        manualOverride.splice(index, 1); // Removes 1 element at the found index\n        context.set('manualOverride', manualOverride);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + topic[2] + \"/off\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\"}';\n    node.send(newMsg);\n\n    //close all branch gates here\n    if (Array.isArray(gates)) {\n        for (let i = 0; i < gates.length; i++) {\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n            newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n            node.send(newMsg);\n        }\n    }\n}\n\nif (type === \"tool\" && status === \"on\") {\n\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index == -1) {\n        toolsRunning.push(topic[2]); //add running tool to global array.\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    let newMsg = {};\n    newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n    newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"on\"}';\n    node.send(newMsg);\n}\n\nif (type === \"tool\" && status === \"off\") {\n    const index = toolsRunning.indexOf(topic[2]); //find tool in running tool global array variable.\n    if (index !== -1) {\n        toolsRunning.splice(index, 1); // Removes 1 element at the found index\n        context.set('toolsRunning', toolsRunning);\n    }\n\n    //no tools left running\n    if (toolsRunning.length === 0) {\n\n        //is collector running manually?\n        const parentindex = manualOverride.indexOf(parent);\n        if (parentindex === -1) {\n            //collector not running manually\n            let newMsg = {};\n            newMsg.topic = baseTopic + \"/\" + parent + \"/cmd\";\n            newMsg.payload = '{\"' + type + '\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"off\"}';\n            node.send(newMsg);\n\n            //close all main branch gates here (gates should have timer built in a few seconds longer than dc shut-down)\n            if (Array.isArray(gates)) {\n                for (let i = 0; i < gates.length; i++) {\n                    let newMsg = {};\n                    newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n                    newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n                    node.send(newMsg);\n                }\n            }\n            \n        }\n    } else {\n        // Check the tools that are still running\n        for (let s = 0; s < toolsRunning.length; s++) {\n            var tool = sensorMap[toolsRunning[s]];\n            //Any tools still using gates that are closing? if so, remove from array to leave them open.\n            if (Array.isArray(gates)) {\n                for (let t = 0; t < tool.length; t++) {\n                    var gateName = tool.gates[t]['name'];\n                    var gateNumber = tool.gates[t]['gateNumber'];\n                    for (let i = 0; i < gates.length; i++) {\n                        if(gateName == gates[i]['name'] && gateNumber == gates[i]['name']) {\n                            //gate found, remove from array\n                            gates.splice(i, 1); // Removes 1 element at the found index\n                        }\n                    }\n                }\n            }\n        }\n        // see if any gates are still in the gates arrah, if so,  close them\n        if (Array.isArray(gates)) {\n            for (let i = 0; i < gates.length; i++) {\n                let newMsg = {};\n                newMsg.topic = baseTopic + \"/\" + gates[i]['name'] + \"/gate/cmd\";\n                newMsg.payload = '{\"device\":\"' + topic[2] + '\", \"status\":\"' + status + '\", \"command\":\"close\", \"gateNumber\":\"' + gates[i]['gateNumber'] + '\"}';\n                node.send(newMsg);\n            }\n        }\n    }\n}\n\nreturn \"\";",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
-        "y": 140,
+        "x": 430,
+        "y": 100,
         "wires": [
             [
                 "a48a661b76d4243a",
