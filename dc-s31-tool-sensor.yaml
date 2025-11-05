@@ -51,9 +51,10 @@ esphome:
     version: $project_ver_num($project_ver_let)
 
   on_boot:
+    priority: 800
     then:
-        # set default values for template sensors, otherwise they are unknown.
-      
+      - light.turn_off: device_led
+      - script.execute: led_wait_heartbeat
 
   min_version: 2025.10.0
 
