@@ -350,7 +350,7 @@
         "id": "0e8c6944103c09e3",
         "type": "mqtt-broker",
         "name": "MQTT Server",
-        "broker": "192.168.101.192",
+        "broker": "mosquitto",
         "port": "1883",
         "clientid": "nodered",
         "autoConnect": true,
