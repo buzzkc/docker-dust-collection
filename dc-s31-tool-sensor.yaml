@@ -19,10 +19,10 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_control
-  project_ver_num: "1.0.0"
+  project_ver_num: "1.0.1"
   project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-control/dc-S31-tool-sensor.yaml@v1
+  sub_import_url: github://buzzkc/docker-dust-collector/dc-S31-tool-sensor.yaml@v1
 
   sub_ota_num_attempts: '15'
 
