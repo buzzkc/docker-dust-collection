@@ -7,19 +7,19 @@ substitutions:
   #
   #
 
-  #name: dc-s31-tool-sensor         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  device_name: dc-s31-tool-sensor         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
-  #friendly_name: Dust Collector Tool Sensor     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
+  friendly_name: Dust Collector Tool Sensor     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
 
-  disable_entities:  "true"    # set to "false" to have all entities show up in Home Assistant automatically
-  disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
+  #disable_entities:  "true"    # set to "false" to have all entities show up in Home Assistant automatically
+  #disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
 
   wifi_ap_timeout: 2min    # default to 2 minute timeout for yaml file as package.
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_control
-  project_ver_num: "1.0.4"
+  project_ver_num: "1.0.6"
   project_ver_let: t
 
   sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml
@@ -44,6 +44,9 @@ esp8266:
 
 # https://esphome.io/components/esphome.html
 esphome:
+
+  name: $device_name
+  friendly_name: $friendly_name
   project:
     name: $project_name
     version: $project_ver_num($project_ver_let)
@@ -114,14 +117,14 @@ globals:
 mqtt:
   broker: ${mqtt_broker}  # 🔹 Replace with your MQTT broker IP or hostname
   discovery: false
-  topic_prefix: ${mqtt_prefix}/${name}
+  topic_prefix: ${mqtt_prefix}/${device_name}
   reboot_timeout: 0s
   birth_message:
-    topic: ${mqtt_prefix}/${name}/birth
+    topic: ${mqtt_prefix}/${device_name}/birth
     payload: "{\"type\":\"${device_type}\", \"state\":\"birth\"}"
     qos: 2
   will_message:
-    topic: ${mqtt_prefix}/${name}/will
+    topic: ${mqtt_prefix}/${device_name}/will
     payload: "{\"type\":\"${device_type}\", \"state\":\"will\"}"
     qos: 2
 
@@ -132,7 +135,7 @@ mqtt:
       - script.stop: led_wait_heartbeat
       - script.execute: led_heartbeat
       - mqtt.publish:
-          topic: ${mqtt_prefix}/${name}/status
+          topic: ${mqtt_prefix}/${device_name}/status
           payload: '{"state":"online"}'
 
   # Send MQTT message when device goes offline
@@ -142,11 +145,11 @@ mqtt:
       - script.stop: led_heartbeat
       - script.execute: led_wait_heartbeat
       - mqtt.publish:
-          topic: ${mqtt_prefix}/${name}/status
+          topic: ${mqtt_prefix}/${device_name}/status
           payload: '{"state":"offline"}'
 
   on_json_message:
-    - topic: ${mqtt_prefix}/${name}/config
+    - topic: ${mqtt_prefix}/${device_name}/config
       then:
         - lambda: |-
             if (x["currentTrigger"]) {
@@ -196,7 +199,7 @@ binary_sensor:
                           return (id(off_routine_running) == false) && id(relay).state;
                   then:
                     - mqtt.publish:
-                        topic: ${mqtt_prefix}/${name}
+                        topic: ${mqtt_prefix}/${device_name}
                         payload: !lambda | 
                           char buffer[64];
                           snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\", \"current\":%.2f}", id(current_raw).state);
@@ -210,7 +213,7 @@ binary_sensor:
                     - lambda: 'id(off_routine_running) = false;'
                     - lambda: 'id(relay_trigger_source) = "button";'
                     - mqtt.publish:
-                        topic: ${mqtt_prefix}/${name}
+                        topic: ${mqtt_prefix}/${device_name}
                         payload: !lambda | 
                           char buffer[64];
                           snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\", \"current\":%.2f}", id(current_raw).state);
@@ -225,7 +228,7 @@ binary_sensor:
             topic: ${mqtt_prefix}/lock/cmd
             payload: !lambda | 
               char buffer[64];
-              snprintf(buffer, sizeof(buffer), "{\"name\": \"${name}\", \"command\":%s}", (id(relay_1).state)?"\"unlock\"":"\"lock\"");
+              snprintf(buffer, sizeof(buffer), "{\"name\": \"${device_name}\", \"command\":%s}", (id(relay_1).state)?"\"unlock\"":"\"lock\"");
               return std::string(buffer);
 
   - platform: status
@@ -255,7 +258,7 @@ sensor:
                 - lambda: 'id(relay_trigger_source) = "sensor";'
                 - logger.log: "Current above 4A, relay triggered by current sensor"
                 - mqtt.publish:
-                    topic: ${mqtt_prefix}/${name}
+                    topic: ${mqtt_prefix}/${device_name}
                     payload: !lambda | 
                       char buffer[64];
                       snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\", \"current\":%.2f}", id(current_raw).state);
@@ -271,7 +274,7 @@ sensor:
               then:
                 - logger.log: "Current dropped below 4A, relay turning off (sensor-triggered)"
                 - mqtt.publish:
-                    topic: ${mqtt_prefix}/${name}
+                    topic: ${mqtt_prefix}/${device_name}
                     payload: !lambda | 
                       char buffer[64];
                       snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\", \"current\":%.2f}", id(current_raw).state);
@@ -370,7 +373,7 @@ script:
             - lambda: 'id(relay_trigger_source) = "sensor";'
             - logger.log: "Current above 4A, relay triggered by current sensor"
             - mqtt.publish:
-                topic: ${mqtt_prefix}/${name}
+                topic: ${mqtt_prefix}/${device_name}
                 payload: !lambda | 
                   char buffer[64];
                   snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\", \"current\":%.2f}", id(current_raw).state);
@@ -388,7 +391,7 @@ script:
           then:
             - logger.log: "Current dropped below 4A, relay turning off (sensor-triggered)"
             - mqtt.publish:
-                topic: ${mqtt_prefix}/${name}
+                topic: ${mqtt_prefix}/${device_name}
                 payload: !lambda | 
                   char buffer[64];
                   snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\", \"current\":%.2f}", id(current_raw).state);
@@ -431,7 +434,7 @@ interval:
   - interval: 30s
     then:
       - mqtt.publish:
-          topic: ${mqtt_prefix}/${name}/update
+          topic: ${mqtt_prefix}/${device_name}/update
           payload: !lambda | 
             char buffer[64];
             snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\" ,\"state\":\"%s\", \"current\":%.2f}",
