@@ -1,0 +1,66 @@
+# https://esphome.io/guides/configuration-types.html#substitutions
+substitutions:
+
+  # substitutions can be changed here if you are using this file directly in the ESPHome dashboard.  The better approach is
+  # to incorporate this file as a package using the following lines, and then overwrite these substitutions in your local
+  # yaml file by redefining them.
+  #
+  #
+
+  device_name: dc-tool-sensor         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+                               # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
+
+  friendly_name: Dust Collector Tool Sensor     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
+
+  wifi_ap_timeout: 2min    # default to 2 minute timeout for yaml file as package.
+
+  # https://esphome.io/components/esphome.html#esphome-creators-project
+  project_name: buzzkc.dust_collector_control
+  project_ver_num: "1.0.0"
+  project_ver_let: t
+
+  sub_import_url: github://buzzkc/dust-collection-controller/dc-S31-tool-sensor.yaml
+
+
+# https://esphome.io/components/esp8266.html
+esp8266:
+  board: esp01_1m
+
+
+# https://esphome.io/components/esphome.html
+esphome:
+
+  name: $device_name
+  friendly_name: $friendly_name
+  # Automatically add the mac address to the name
+  # so you can use a single firmware for all devices
+  name_add_mac_suffix: true
+  project:
+    name: $project_name
+    version: $project_ver_num($project_ver_let)
+  min_version: 2025.10.0
+
+# This should point to the public location of this yaml file.
+dashboard_import:
+  package_import_url: $sub_import_url
+  import_full_config: false # or true
+
+
+# https://esphome.io/components/wifi.html
+wifi:
+  ap:
+    ap_timeout: $wifi_ap_timeout
+
+
+# https://esphome.io/components/captive_portal.html
+captive_portal:
+
+# https://esphome.io/components/api.html
+api:
+
+# https://esphome.io/components/ota.html
+ota:
+  platform: esphome
+
+# https://esphome.io/components/logger.html
+logger:

@@ -22,7 +22,7 @@ substitutions:
   project_ver_num: "1.0.1"
   project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-collector/dc-S31-tool-sensor.yaml@v1
+  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml
 
   sub_ota_num_attempts: '15'
 
