@@ -2,7 +2,6 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: mosquitto
-    network_mode: host
     ports:
       - "1883:1883"
       - "9001:9001"
@@ -48,9 +47,9 @@ services:
     network_mode: host
   #  depends_on:
   #    - homeassistant
-    ports:
-      - "6052:6052"
-      - "5353:5353/udp" # mDNS
+  #  ports:
+  #    - "6052:6052"
+  #    - "5353:5353/udp" # mDNS
     volumes:
       - ./esphome:/config
     restart: unless-stopped
