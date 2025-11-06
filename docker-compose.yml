@@ -48,6 +48,7 @@ services:
       - homeassistant
     ports:
       - "6052:6052"
+      - "5353:5353/udp" # mDNS
     volumes:
       - ./esphome:/config
     restart: unless-stopped
