@@ -25,8 +25,9 @@ substitutions:
   sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml
 
   sub_ota_num_attempts: '15'
-
+  
   device_type: "tool"
+  mqtt_broker: "0.0.0.0"
   mqtt_prefix: "buzzkc/dc" 
   relay_pin: 12 # Relay
   led_pin: 13 # Push button LED
@@ -114,7 +115,7 @@ globals:
     initial_value: '2.0'
 
 mqtt:
-  broker: !secret mqtt_broker  # 🔹 Replace with your MQTT broker IP or hostname
+  broker: ${mqtt_broker}  # 🔹 Replace with your MQTT broker IP or hostname
   discovery: false
   topic_prefix: ${mqtt_prefix}/${device_name}
   reboot_timeout: 0s
