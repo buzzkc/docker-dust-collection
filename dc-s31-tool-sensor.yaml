@@ -19,7 +19,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_control
-  project_ver_num: "1.0.3"
+  project_ver_num: "1.0.4"
   project_ver_let: t
 
   sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml
@@ -44,9 +44,6 @@ esp8266:
 
 # https://esphome.io/components/esphome.html
 esphome:
-
-  name: $name
-  friendly_name: $friendly_name
   project:
     name: $project_name
     version: $project_ver_num($project_ver_let)
