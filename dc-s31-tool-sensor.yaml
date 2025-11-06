@@ -7,10 +7,10 @@ substitutions:
   #
   #
 
-  name: dc-s31-tool-sensor         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  #name: dc-s31-tool-sensor         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
-  friendly_name: Dust Collector Tool Sensor     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
+  #friendly_name: Dust Collector Tool Sensor     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
 
   disable_entities:  "true"    # set to "false" to have all entities show up in Home Assistant automatically
   disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
@@ -19,7 +19,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_control
-  project_ver_num: "1.0.2"
+  project_ver_num: "1.0.3"
   project_ver_let: t
 
   sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml
