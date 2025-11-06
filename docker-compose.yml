@@ -46,8 +46,8 @@ services:
     image: esphome/esphome:latest
     container_name: esphome
     network_mode: host
-    depends_on:
-      - homeassistant
+  #  depends_on:
+  #    - homeassistant
     ports:
       - "6052:6052"
       - "5353:5353/udp" # mDNS
