@@ -77,7 +77,7 @@ services:
       - ./nginx:/usr/share/nginx/html
     depends_on:
       - nodered
-      - homeassistant
+  #    - homeassistant
       - esphome
       - mqtt-explorer
 
