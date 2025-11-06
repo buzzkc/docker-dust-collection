@@ -20,6 +20,15 @@ substitutions:
   project_ver_let: t
 
   sub_import_url: github://buzzkc/dust-collection-controller/dc-S31-tool-sensor.yaml
+  
+  mqtt_broker: "0.0.0.0"
+  mqtt_prefix: "buzzkc/dc" 
+  relay_pin: 12 # Relay
+  led_pin: 13 # Push button LED
+  #servo1_pin: 5 
+  #servo2_pin: 4
+  switch_pin: 0 # Push button
+  current_pin: 0 # A0
 
 
 # https://esphome.io/components/esp8266.html
