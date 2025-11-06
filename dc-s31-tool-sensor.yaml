@@ -88,7 +88,7 @@ safe_mode:
   num_attempts: $sub_ota_num_attempts
 
 # https://esphome.io/components/web_server.html
-web_server:
+#web_server:
 
 # Device Specific Config
 #<<: !include dc-sonoff-s31-template-header.yaml   
