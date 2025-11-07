@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>My IoT Dashboard</title>
+  <title>Dust Collector Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
       margin-top: 10%;
     }
     h1 { color: #38bdf8; }
-    a {
+    #links a {
       display: inline-block;
       background-color: #1e293b;
       color: #f8fafc;
@@ -23,12 +23,20 @@
       font-size: 18px;
       transition: background 0.3s;
     }
-    a:hover { background-color: #334155; }
+    #links a:hover { background-color: #334155; }
   </style>
 </head>
 <body>
   <h1>Dust Collector Dashboard</h1>
-  <div>This page is mostly a placeholder for good things to come, but for development, here are links to the stacks containers</div>
+  <div>Use the following links to view the application dashboards:
+	  <ul>
+		  <li>NodeRed - Used to manage flows and messages to and from MQTT.</li>
+		  <li>ESPHome - Used to manage devices and firmware code on each device.</li>
+		  <li>MQTT Explorer - Used to view messages being sent to the MQTT broker (mosquitto).</li>
+		  <li>DC Configuration - Page with drag/drop functions to organize and configure your dust collection system.</li>
+		  <li>Portainer - Used to manage manage docker container, not installed by default, see <a href="https://docs.portainer.io/start/install-ce" target="_blank">here</a>.</li>
+	  </ul>
+  </div>
   <div id="links"></div>
 
   <script>
@@ -41,8 +49,9 @@
       { name: 'Node-RED', port: 1880, path: ""  },
       { name: 'ESPHome', port: 6052, path: ""  },
       { name: 'MQTT Explorer Web', port: 8083, path: ""  },
-	  { name: 'Portainer', port: 9000, path: "" },
 	  { name: 'DC Configuration', port: 80, path: "/json-editor/index.html" },
+	  { name: 'Portainer', port: 9000, path: "" },
+	  
     ];
 
     const linksDiv = document.getElementById('links');
