@@ -39,7 +39,8 @@ substitutions:
 
 # https://esphome.io/components/esp8266.html
 esp8266:
-  board: esp01_1m
+  board: esp12e
+  early_pin_init: false
 
 
 # https://esphome.io/components/esphome.html
