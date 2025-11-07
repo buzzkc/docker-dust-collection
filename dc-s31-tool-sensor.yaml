@@ -165,7 +165,9 @@ mqtt:
               if (state == "unlock") {
                 id(relay_1).turn_on();
               } else if (state == "lock"){
-                id(relay_1).turn_off();
+                if(!(id(relay).state)) {
+                  id(relay_1).turn_off();
+                }
               }
             }
 
@@ -224,13 +226,18 @@ binary_sensor:
     - min_length: 2000ms
       max_length: 5000ms
       then:
-        - switch.toggle: relay_1
-        - mqtt.publish:
-            topic: ${mqtt_prefix}/lock/cmd
-            payload: !lambda | 
-              char buffer[64];
-              snprintf(buffer, sizeof(buffer), "{\"name\": \"${device_name}\", \"command\":%s}", (id(relay_1).state)?"\"unlock\"":"\"lock\"");
-              return std::string(buffer);
+        - if:
+            condition:
+              - lambda: 'return !(id(relay).state);'
+            then: 
+              # tool off, allow lock
+            - switch.toggle: relay_1
+            - mqtt.publish:
+                topic: ${mqtt_prefix}/lock/cmd
+                payload: !lambda | 
+                  char buffer[64];
+                  snprintf(buffer, sizeof(buffer), "{\"name\": \"${device_name}\", \"command\":%s}", (id(relay_1).state)?"\"unlock\"":"\"lock\"");
+                  return std::string(buffer);
 
   - platform: status
     id: platform_status
