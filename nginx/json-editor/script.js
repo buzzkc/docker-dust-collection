@@ -58,7 +58,8 @@ urlInput.style.display = 'block';
 urlInput.style.margin = '0 auto'; 
 urlInput.style.marginTop = '10px';
 urlInput.placeholder = 'Enter NodeRed URL (e.g. http://192.168.1.10:1880)';
-urlInput.value = localStorage.getItem('configUrl') || '';
+const savedUrl = localStorage.getItem('configUrl');
+if (savedUrl) urlInput.value = savedUrl; // ✅ only set if it exists
 document.getElementById('sidebar').appendChild(urlInput);
 
 let nodes = [];
