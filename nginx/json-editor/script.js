@@ -57,6 +57,7 @@ urlInput.style.width = '90%';
 urlInput.style.display = 'block';
 urlInput.style.margin = '0 auto'; 
 urlInput.style.marginTop = '10px';
+urlInput.placeholder = 'Enter NodeRed URL (e.g. http://192.168.1.10:1880)';
 urlInput.value = localStorage.getItem('configUrl') || '';
 document.getElementById('sidebar').appendChild(urlInput);
 
