@@ -127,6 +127,33 @@ Inspect volumes:
 docker volume inspect <volume_name>
 ```
 
+## Services Cofiguration
+In ESPHome, you'll want to add the floowing entries to your secrets file (button top right).
+```
+wifi_ssid: "<your_ssid>"
+wifi_password: "<your_wifi_password>"
+mqtt_broker: "<your_MQTT_serverIP>"
+```
+
+Add new devices to ESPHome, then update the device yaml to be for the type of device you are creating. You can copy the examples from the demo files. Install to update the device.
+
+Once you have all your devices added, procede to configuration of the system.
+
+In the DC Configuration page:
+- Update the NodeRed URL to the http address of your NodeRed server (e.g. http://192.168.1.15:1880 )
+- Drag and Drop the types of components that make up your dust collection system onto the canvas.
+- Dragging Gates and Tool components onto a Collector component will create an association. As you drag the Gate or Tool away from the Collector, a line will appear showing the relationship.
+- Dragging a Tool component or a Gate component onto another Gate Component will create a relationship as well. The component that is dragged will become the child component to the Gate.
+- Collectors cannot be added to other components, they are a top level commponent.
+- Tools are the last component in the chain, they can only be child components.
+- All components have a name field, this name should be the device_name of the ESPHome device you intend for the component to represent (e.g. dc-shopvac-1 ) 
+- Tool components have a configuration for trigger current, this is the reading that causes the tool sensor to send a message that a tool is running.
+- A gate component can operate one or more gates, specify in the components field, which gate should be toggled.
+- You can drag any component in the chain to another component that it can be a child of and it will re-parent the component and descendant components.
+- Once you have your configuration as it represents your system configured to mimic your actual system, Export the diagram and commit your configuration.
+- The configuration file will be written to NodeRed. A flow that runs every 5 minutes will read the file and update the configuration for the system. You can click on left side of the blue node in NodeRed to trigger the flow to run.
+
+
 
 ## Troubleshooting
 
@@ -154,9 +181,18 @@ docker volume inspect <volume_name>
 
 ## To-Dos
 - Load all configs and ports from .env and update configurations for flows, and esphome.
-- Add authentication to services, currently no login needed, except for HA.
+- Add authentication to services, currently no login needed.
 - Document MQTT messages and flows
 
 
+## Usage Notice
+
+This software is licensed under the [Apache License 2.0](LICENSE).
+
+It is provided free for personal and educational use.  
+Use this software at your own risk. The author is **not responsible** for any damage, loss, or injury resulting from its use.  
+
+Commercial use is allowed under the terms of the Apache 2.0 License.
+
 **Author:** BuzzKC  
-**License:** Apache License 2.0  
+
