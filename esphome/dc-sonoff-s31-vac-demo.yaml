@@ -1,0 +1,310 @@
+##----------Template file to copy to new vac controller based on Sonoff S31 or similar components, see comments below where/what to copy. :)
+
+substitutions:
+  device_name: "dc-sonoff-s31-vac-demo"
+  friendly_name: "DC Sonoff S31 Vac Demo"
+  device_type: "controller"
+  mqtt_prefix: "buzzkc/dc" 
+  relay_pin: 12 # Relay
+  led_pin: 13 # Push button LED
+  #servo1_pin: 5 
+  #servo2_pin: 4
+  switch_pin: 0 # Push button
+  current_pin: 0 # A0
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: 600
+    then:
+      - switch.turn_off: relay
+      - light.turn_off: device_led
+      - script.execute: led_wait_heartbeat
+
+esp8266:
+  board: esp12e
+  early_pin_init: false 
+
+##----------Copy above to new initialized device, replace existing, but set device_name and friendly_name above.
+##----------Between here and next line should be what was created on new initialized device
+
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s ##----------Add this line to prevent reboots, under api
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "DC Sonoff S31 Vac"
+    password: "123456789"
+
+captive_portal:
+
+##----------Copy below to new initialized device.
+
+uart:
+  rx_pin: RX
+  baud_rate: 4800
+  parity: EVEN
+
+logger:
+  level: ERROR ##----------To debug, change this and below to DEBUG
+  baud_rate: 0 # (UART logging interferes with cse7766)
+  logs:
+    sensor: ERROR # (Overide any global setting, to VERBOSE will spamming the cse7766 sensors)
+
+globals:
+  - id: relay_trigger_source
+    type: std::string
+    restore_value: no
+    initial_value: '"none"'
+
+  - id: off_routine_running
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: show_splash
+    type: bool
+    restore_value: no
+    initial_value: "true"
+
+mqtt:
+  broker: !secret mqtt_broker  ##----------Replace with your MQTT broker IP or hostname
+  discovery: false
+  topic_prefix: ${mqtt_prefix}/${device_name}
+  reboot_timeout: 0s
+  birth_message:
+    topic: ${mqtt_prefix}/${device_name}/birth
+    payload: "{\"type\":\"${device_type}\", \"state\":\"birth\"}"
+  will_message:
+    topic: ${mqtt_prefix}/${device_name}/will
+    payload: "{\"type\":\"${device_type}\", \"state\":\"will\"}"
+  
+  # Send MQTT message when device comes online
+  on_connect:
+    then:
+      - output.turn_off: led_output
+      - script.stop: led_wait_heartbeat
+      - script.execute: led_heartbeat
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/status
+          payload: '{"state":"online"}'
+
+  # Send MQTT message when device goes offline
+  on_disconnect:
+    then:
+      - output.turn_off: led_output
+      - script.stop: led_heartbeat
+      - script.execute: led_wait_heartbeat
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/status
+          payload: '{"state":"offline"}'
+
+  on_json_message:
+    - topic: ${mqtt_prefix}/${device_name}/cmd
+      then:
+        - lambda: |-
+            if (x.containsKey("command")) {
+              std::string cmd = x["command"];
+              if (cmd == "toggle") {
+                id(toggle_relay).execute();
+              } else if (cmd == "on") {
+                if (!id(relay).state || (id(off_routine_running) && id(relay).state)) id(toggle_relay).execute();
+              } else if (cmd == "off") {
+                if (id(relay).state) id(relay_off_routine).execute();
+              }
+            }
+
+sensor:
+  - platform: wifi_signal
+    id: wifi_info
+    update_interval: 60s
+  - platform: cse7766
+    current:
+      id: current_raw
+      accuracy_decimals: 2
+      filters:
+        - throttle_average: 10s
+    voltage:
+      id: voltage_raw
+      accuracy_decimals: 2
+      filters:
+        - throttle_average: 60s
+
+switch:
+  - platform: gpio
+    pin: ${relay_pin}
+    id: relay
+    restore_mode: ALWAYS_OFF
+    on_turn_on:
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}
+          payload: !lambda | 
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\"}");
+            return std::string(buffer);
+    on_turn_off:
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}
+          payload: !lambda | 
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\"}");
+            return std::string(buffer);     
+
+
+# ✅ All outputs in one block
+time:
+  - platform: sntp #(required for total_daily_energy)
+    id: my_time
+
+output:
+  # LED output
+  - platform: gpio
+    pin: 
+      number: ${led_pin}
+      inverted: True
+    id: led_output
+
+light:
+  - platform: binary
+    id: device_led
+    output: led_output
+
+
+script:
+  - id: relay_on_routine
+    mode: restart
+    then:
+      - switch.turn_on: relay
+      - script.stop: led_heartbeat
+      - light.turn_on: device_led
+      - delay: 1s
+      - mqtt.publish:
+                topic: ${mqtt_prefix}/${device_name}/status
+                payload: '{"type":"${device_type}", relay":"on"}'
+
+  - id: relay_off_routine
+    mode: restart
+    then:
+      - lambda: 'id(off_routine_running) = true;'
+      # Flash LED for 10 seconds (500ms on / 500ms off)
+      - repeat:
+          count: 10
+          then:
+            - light.toggle: device_led
+            - delay: 1s
+      
+      # Now turn off the relay
+      - switch.turn_off: relay
+
+      # Make sure LED is off (final state)
+      - light.turn_off: device_led
+      - script.execute: led_heartbeat
+
+      # reset global variable to none that tracks if it was toggled on via the button or the current sensor   
+      - delay: 1s   
+      - lambda: 'id(relay_trigger_source) = "none";'
+      - lambda: 'id(off_routine_running) = false;'
+
+  # Toggle relay logic (handles button or MQTT)
+  - id: toggle_relay
+    then:
+      - if:
+          condition:
+            lambda: |-
+                  return (id(off_routine_running) == false) && !(id(relay_trigger_source) == "button") && id(relay).state;
+          then:
+            - script.execute: relay_off_routine
+          else:
+            # Interrupt any pending off routine before turning on
+            - script.stop: relay_off_routine
+            - lambda: 'id(off_routine_running) = false;'
+            - script.execute: relay_on_routine
+
+  # --- Heartbeat LED: double flash every 2 seconds ---
+  - id: led_heartbeat
+    mode: restart
+    then:
+      - logger.log: "LED heartbeat started (double flash every 2s)"
+      - while:
+          condition:
+            lambda: 'return true;'
+          then:
+            - light.turn_on: device_led
+            - delay: 100ms
+            - light.turn_off: device_led
+            - delay: 100ms
+            - light.turn_on: device_led
+            - delay: 100ms
+            - light.turn_off: device_led
+            - delay: 1500ms
+
+# --- Wait Heartbeat LED: flash quickly once every 1 seconds ---
+  - id: led_wait_heartbeat
+    mode: restart
+    then:
+      - logger.log: "LED wait heartbeat started (flash once quickly every 1s)"
+      - while:
+          condition:
+            lambda: 'return true;'
+          then:
+            - light.turn_on: device_led
+            - delay: 100ms
+            - light.turn_off: device_led
+            - delay: 900ms
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: ${switch_pin}
+      mode: INPUT_PULLUP
+      inverted: true
+    id: button
+    filters:
+      - delayed_on: 50ms    # debounce for press
+      - delayed_off: 50ms   # debounce for release
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                  return (id(off_routine_running) == false) && id(relay).state;
+            then:
+              - lambda: 'id(relay_trigger_source) = "manual";'
+              - script.execute: toggle_relay
+              - script.wait: relay_off_routine
+              - mqtt.publish:
+                  topic: ${mqtt_prefix}/${device_name}/manual
+                  payload: !lambda | 
+                    char buffer[64];
+                    snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\"}");
+                    return std::string(buffer);
+              
+            else:  
+              - lambda: 'id(relay_trigger_source) = "button";'
+              - script.execute: toggle_relay
+              - mqtt.publish:
+                  topic: ${mqtt_prefix}/${device_name}/manual
+                  payload: !lambda | 
+                    char buffer[64];
+                    snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\"}");
+                    return std::string(buffer);
+
+interval:
+  - interval: 30s
+    then:
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/update
+          payload: !lambda | 
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\" ,\"status\":\"%s\"}",
+                     id(relay).state ? "on" : "off");
+            return std::string(buffer);    
