@@ -1,3 +1,5 @@
+##----------Template file to copy to new gate controller based on esp8266/nodemcu or similar components, see comments below where/what to copy. :)
+
 substitutions:
   device_name: "dc-gate-demo"
   friendly_name: "DC Gate Demo"
