@@ -23,8 +23,7 @@ esphome:
           level: -100%
       - output.turn_off: gpio_led
       - script.execute: led_heartbeat
-	  #----------Update maps below to match the number of gates and ids of the gates.
-      - lambda: |-
+      - lambda: |- #----------Update maps below to match the number of gates and ids of the gates.
           id(gate_map) = std::map<int, servo::Servo*>{
             {1, id(gate_1)},
             {2, id(gate_2)}
