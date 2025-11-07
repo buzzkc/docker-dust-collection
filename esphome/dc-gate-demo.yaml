@@ -22,7 +22,7 @@ esphome:
           id: gate_2
           level: -100%
       - output.turn_off: gpio_led
-      - script.execute: led_heartbeat
+      - script.execute: led_wait_heartbeat
       - lambda: |- #----------Update maps below to match the number of gates and ids of the gates.
           id(gate_map) = std::map<int, servo::Servo*>{
             {1, id(gate_1)},
@@ -87,6 +87,26 @@ mqtt:
     topic: ${mqtt_prefix}/${device_name}/will
     payload: "{\"type\":\"${device_type}\", \"state\":\"will\"}"
     qos: 2
+   # Send MQTT message when device comes online
+  on_connect:
+    then:
+      - output.turn_off: gpio_led
+      - script.stop: led_wait_heartbeat
+      - script.execute: led_heartbeat
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/status
+          payload: '{"state":"online"}'
+
+  # Send MQTT message when device goes offline
+  on_disconnect:
+    then:
+      - output.turn_off: gpio_led
+      - script.stop: led_heartbeat
+      - script.execute: led_wait_heartbeat
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/status
+          payload: '{"state":"offline"}'
+
   on_json_message:
     - topic: ${mqtt_prefix}/${device_name}/gate/cmd
       then:
@@ -177,7 +197,7 @@ script:
                           return "{\"type\":\"gate\",\"state\":\"closed\",\"gateNumber\":" + std::to_string(gate) + "}";
       
 
-  # --- Heartbeat LED: double flash every 2 seconds ---
+  # --- Connected Heartbeat LED: double flash every 2 seconds ---
   - id: led_heartbeat
     mode: restart
     then:
@@ -193,5 +213,18 @@ script:
             - output.turn_on: gpio_led
             - delay: 100ms
             - output.turn_off: gpio_led
-            - delay: 1500ms
+            - delay: 1700ms
  
+  # --- Connection Wait Heartbeat LED: flash quickly once every 1 seconds ---
+  - id: led_wait_heartbeat
+    mode: restart
+    then:
+      - logger.log: "LED wait heartbeat started (flash once quickly every 1s)"
+      - while:
+          condition:
+            lambda: 'return true;'
+          then:
+            - output.turn_on: gpio_led
+            - delay: 100ms
+            - output.turn_off: gpio_led
+            - delay: 900ms
