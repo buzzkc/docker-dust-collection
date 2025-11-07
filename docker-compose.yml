@@ -23,7 +23,7 @@ services:
     volumes:
       - ./nodered:/data
     restart: unless-stopped
-    privileged: true
+    user: root
     env_file:
       - ./.env
 
