@@ -1,0 +1,198 @@
+substitutions:
+  device_name: "dc-gate-demo"
+  friendly_name: "DC Gate Demo"
+  device_type: "gate"
+  mqtt_prefix: "buzzkc/dc"
+  led_pin: 2 # Push button LED
+  servo1_pin: 16 
+  servo2_pin: 5
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  # --- On Boot: set gate to closed ---
+  on_boot:
+    priority: 800
+    then:
+      - logger.log: "Setting gate to closed on startup"
+      - servo.write:
+          id: gate_1
+          level: -100%
+      - servo.write:
+          id: gate_2
+          level: -100%
+      - output.turn_off: gpio_led
+      - script.execute: led_heartbeat
+	  #----------Update maps below to match the number of gates and ids of the gates.
+      - lambda: |-
+          id(gate_map) = std::map<int, servo::Servo*>{
+            {1, id(gate_1)},
+            {2, id(gate_2)}
+          };
+          id(gate_pos) = std::map<int, float>{
+            {1, -1.0},
+            {2, -1.0}
+          };
+
+##----------Copy above to new initialized device, replace existing, but set device_name and friendly_name above.
+##----------Between here and next line should be what was created on new initialized device
+  
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+  level: ERROR
+
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Dc-Gate-Demo"
+
+captive_portal:
+
+##----------Copy below to new initialized device.
+
+globals:
+  - id: off_routine_running
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: gate_map # used to map gate ids gates, array should match the number of gates, see boot section.
+    type: std::map<int, servo::Servo*>
+    restore_value: no
+  - id: gate_pos # used to map last position of gates, array should match the number of gates, see boot section.
+    type: std::map<int, float>
+    restore_value: no
+
+mqtt:
+  broker: !secret mqtt_broker  # Replace with your MQTT broker IP or hostname, or set it in secrets for key mqtt_broker
+  discovery: false
+  topic_prefix: ${mqtt_prefix}/${device_name}
+  reboot_timeout: 0s
+  birth_message:
+    topic: ${mqtt_prefix}/${device_name}/birth
+    payload: "{\"type\":\"${device_type}\", \"state\":\"birth\"}"
+    qos: 2
+  will_message:
+    topic: ${mqtt_prefix}/${device_name}/will
+    payload: "{\"type\":\"${device_type}\", \"state\":\"will\"}"
+    qos: 2
+  on_json_message:
+    - topic: ${mqtt_prefix}/${device_name}/gate/cmd
+      then:
+        - lambda: |-
+            int gate = 0;
+            if (x["command"]) {
+              std::string cmd = x["command"];
+              if(x["gateNumber"]) {
+                gate = x["gateNumber"];
+              }
+              if (cmd == "open") {
+                id(gate_pos)[gate] = 0.5;
+                id(gate_open_sequence).execute(gate);
+              } else if (cmd == "close") {
+                id(gate_pos)[gate] = -1.0;
+                id(gate_close_sequence).execute(gate);
+              }
+            }
+
+# --- Hardware setup ---
+output:
+  - platform: esp8266_pwm
+    id: pwm_output_1
+    pin: ${servo1_pin}
+    frequency: 50 Hz
+  
+  - platform: esp8266_pwm
+    id: pwm_output_2
+    pin: ${servo2_pin}
+    frequency: 50 Hz
+  
+  - platform: gpio
+    id: gpio_led
+    inverted: true
+    pin: ${led_pin}
+
+servo:
+  - id: gate_1
+    output: pwm_output_1
+    min_level: 0.03
+    max_level: 0.12
+
+  - id: gate_2
+    output: pwm_output_2
+    min_level: 0.03
+    max_level: 0.12  
+  
+
+# --- Gate close sequence script ---
+script:
+  - id: gate_open_sequence
+    mode: parallel
+    parameters: 
+      gate: int
+    then:
+      - logger.log: "Gate OPEN command received"
+      # Move servo to open
+      - lambda: |-
+          auto *servo_ptr = id(gate_map)[gate];
+          if (servo_ptr != nullptr) {
+              servo_ptr->write(id(gate_pos)[gate]);
+          }
+
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/status
+          payload: !lambda |-
+                    return "{\"type\":\"gate\",\"state\":\"opened\",\"gateNumber\":" + std::to_string(gate) + "}";
+
+  - id: gate_close_sequence
+    mode: parallel
+    parameters: 
+      gate: int
+    then:
+      - delay: 12s
+      - if:
+          condition:
+            - lambda: |- 
+                return (id(gate_pos)[gate] == -1.0);
+          then:
+            - lambda: |- 
+                auto *servo_ptr = id(gate_map)[gate];
+                if (servo_ptr != nullptr) {
+                    servo_ptr->write(id(gate_pos)[gate]);
+                }
+            - mqtt.publish:
+                topic: ${mqtt_prefix}/${device_name}/status
+                payload: !lambda |-
+                          return "{\"type\":\"gate\",\"state\":\"closed\",\"gateNumber\":" + std::to_string(gate) + "}";
+      
+
+  # --- Heartbeat LED: double flash every 2 seconds ---
+  - id: led_heartbeat
+    mode: restart
+    then:
+      - logger.log: "LED heartbeat started (double flash every 2s)"
+      - while:
+          condition:
+            lambda: 'return true;'
+          then:
+            - output.turn_on: gpio_led
+            - delay: 100ms
+            - output.turn_off: gpio_led
+            - delay: 100ms
+            - output.turn_on: gpio_led
+            - delay: 100ms
+            - output.turn_off: gpio_led
+            - delay: 1500ms
+ 
