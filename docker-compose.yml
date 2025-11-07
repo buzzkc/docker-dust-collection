@@ -61,6 +61,8 @@ services:
     image: smeagolworms4/mqtt-explorer
     container_name: mqtt_explorer_web
     restart: unless-stopped
+    volumes:
+      - ./mqtt-explorer/config:/mqtt-explorer/config
     ports:
       - "8083:4000"   # internal port 8080 mapped to host 8083
     depends_on:

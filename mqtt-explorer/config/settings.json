@@ -1,0 +1,26 @@
+{
+  "ConnectionManager_connections": {
+    "587ee7ff-592b-4097-93e1-5132e9bad730": {
+      "configVersion": 1,
+      "certValidation": true,
+      "clientId": "mqtt-explorer-24f59842",
+      "id": "587ee7ff-592b-4097-93e1-5132e9bad730",
+      "name": "mosquitto",
+      "encryption": false,
+      "subscriptions": [
+        {
+          "topic": "#",
+          "qos": 0
+        },
+        {
+          "topic": "$SYS/#",
+          "qos": 0
+        }
+      ],
+      "type": "mqtt",
+      "host": "mosquitto",
+      "port": 1883,
+      "protocol": "mqtt"
+    }
+  }
+}
