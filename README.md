@@ -18,6 +18,7 @@ project-root/
 ├── .env                     # environment variables for all containers
 ├── docker-compose.yml       # main Docker Compose stack
 ├── nginx/
+│   ├── json-editor/ 		 # DC Configuration editor
 │   └── index.html           # dashboard homepage with links to services
 ├── nodered/
 │   └── flows.json           # Node-RED flows
