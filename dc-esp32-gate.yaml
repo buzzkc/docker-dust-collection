@@ -1,0 +1,235 @@
+# https://esphome.io/guides/configuration-types.html#substitutions
+substitutions:
+
+  # substitutions can be changed here if you are using this file directly in the ESPHome dashboard.  The better approach is
+  # to incorporate this file as a package using the following lines, and then overwrite these substitutions in your local
+  # yaml file by redefining them.
+  #
+  #
+
+  device_name: dc-esp32-gate         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+                               # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
+
+  friendly_name: ESP32 Gate Controller     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
+
+  #disable_entities:  "true"    # set to "false" to have all entities show up in Home Assistant automatically
+  #disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
+
+  wifi_ap_timeout: 2min    # default to 2 minute timeout for yaml file as package.
+
+  # https://esphome.io/components/esphome.html#esphome-creators-project
+  project_name: buzzkc.dust_collector_control
+  project_ver_num: "1.0.8"
+  project_ver_let: t
+
+  sub_import_url: github://buzzkc/docker-dust-collection/dc-esp32-gate.yaml@main
+
+  sub_ota_num_attempts: '15'
+  
+  device_type: "gate"
+  mqtt_prefix: "buzzkc/dc"
+  led_pin: 2 
+  servo1_pin: 22 
+  servo2_pin: 23
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: $project_name
+    version: $project_ver_num($project_ver_let)
+  # --- On Boot: set gate to closed ---
+  on_boot:
+    priority: 800
+    then:
+      - logger.log: "Setting gate to closed on startup"
+      - servo.write:
+          id: gate_1
+          level: -100%
+      - servo.write:
+          id: gate_2
+          level: -100%
+      - output.turn_off: gpio_led
+      - script.execute: led_heartbeat
+      - lambda: |-
+          id(gate_map) = std::map<int, servo::Servo*>{
+            {1, id(gate_1)},
+            {2, id(gate_2)}
+          };
+          id(gate_pos) = std::map<int, float>{
+            {1, -1.0},
+            {2, -1.0}
+          };
+
+  min_version: 2025.10.0
+  
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+  level: ERROR
+
+# This should point to the public location of this yaml file.
+dashboard_import:
+  package_import_url: $sub_import_url
+  import_full_config: false # or true
+
+# https://esphome.io/components/wifi.html
+wifi:
+  ap:
+    ap_timeout: $wifi_ap_timeout
+
+# https://esphome.io/components/captive_portal.html
+captive_portal:
+
+# https://esphome.io/components/api.html
+api:
+
+# https://esphome.io/components/ota.html
+ota:
+  - platform: esphome
+
+safe_mode:
+  num_attempts: $sub_ota_num_attempts
+
+globals:
+  - id: off_routine_running
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: gate_map
+    type: std::map<int, servo::Servo*>
+    restore_value: no
+  - id: gate_pos
+    type: std::map<int, float>
+    restore_value: no
+
+mqtt:
+  broker: !secret mqtt_broker  # 🔹 Replace with your MQTT broker IP or hostname, or set it in secrets for key mqtt_broker
+  discovery: false
+  topic_prefix: ${mqtt_prefix}/${device_name}
+  reboot_timeout: 0s
+  birth_message:
+    topic: ${mqtt_prefix}/${device_name}/birth
+    payload: "{\"type\":\"${device_type}\", \"state\":\"birth\"}"
+    qos: 2
+  will_message:
+    topic: ${mqtt_prefix}/${device_name}/will
+    payload: "{\"type\":\"${device_type}\", \"state\":\"will\"}"
+    qos: 2
+  on_json_message:
+    - topic: ${mqtt_prefix}/${device_name}/gate/cmd
+      then:
+        - lambda: |-
+            int gate = 0;
+            if (x["command"]) {
+              std::string cmd = x["command"];
+              if(x["gateNumber"]) {
+                gate = x["gateNumber"];
+              }
+              if (cmd == "open") {
+                id(gate_pos)[gate] = 0.5;
+                id(gate_open_sequence).execute(gate);
+              } else if (cmd == "close") {
+                id(gate_pos)[gate] = -1.0;
+                id(gate_close_sequence).execute(gate);
+              }
+            }
+
+# --- Hardware setup ---
+output:
+  - platform: ledc
+    id: pwm_output_1
+    pin: ${servo1_pin}
+    frequency: 50 Hz
+  
+  - platform: ledc
+    id: pwm_output_2
+    pin: ${servo2_pin}
+    frequency: 50 Hz
+  
+  - platform: gpio
+    id: gpio_led
+    #inverted: true
+    pin: ${led_pin}
+
+servo:
+  - id: gate_1
+    output: pwm_output_1
+    min_level: 0.03
+    max_level: 0.12
+
+  - id: gate_2
+    output: pwm_output_2
+    min_level: 0.03
+    max_level: 0.12  
+  
+
+# --- Gate close sequence script ---
+script:
+  - id: gate_open_sequence
+    mode: parallel
+    parameters: 
+      gate: int
+    then:
+      - logger.log: "Gate OPEN command received"
+      # Stop close and heartbeat scripts if same gate being re-opened.
+      #- script.stop: gate_close_sequence
+      #- script.stop: led_heartbeat
+      # LED on steady
+      #- output.turn_on: gpio_led
+      # Move servo to open
+      - lambda: |-
+          auto *servo_ptr = id(gate_map)[gate];
+          if (servo_ptr != nullptr) {
+              servo_ptr->write(id(gate_pos)[gate]);
+          }
+
+      - mqtt.publish:
+          topic: ${mqtt_prefix}/${device_name}/status
+          payload: !lambda |-
+                    return "{\"type\":\"gate\",\"state\":\"opened\",\"gateNumber\":" + std::to_string(gate) + "}";
+
+  - id: gate_close_sequence
+    mode: parallel
+    parameters: 
+      gate: int
+    then:
+      - delay: 12s
+      - if:
+          condition:
+            - lambda: |- 
+                return (id(gate_pos)[gate] == -1.0);
+          then:
+            - lambda: |- 
+                auto *servo_ptr = id(gate_map)[gate];
+                if (servo_ptr != nullptr) {
+                    servo_ptr->write(id(gate_pos)[gate]);
+                }
+            - mqtt.publish:
+                topic: ${mqtt_prefix}/${device_name}/status
+                payload: !lambda |-
+                          return "{\"type\":\"gate\",\"state\":\"closed\",\"gateNumber\":" + std::to_string(gate) + "}";
+      
+
+  # --- Heartbeat LED: double flash every 2 seconds ---
+  - id: led_heartbeat
+    mode: restart
+    then:
+      - logger.log: "LED heartbeat started (double flash every 2s)"
+      - while:
+          condition:
+            lambda: 'return true;'
+          then:
+            - output.turn_on: gpio_led
+            - delay: 100ms
+            - output.turn_off: gpio_led
+            - delay: 100ms
+            - output.turn_on: gpio_led
+            - delay: 100ms
+            - output.turn_off: gpio_led
+            - delay: 1500ms
+ 
