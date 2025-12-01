@@ -10,16 +10,16 @@ substitutions:
   device_name: dc-esp32-gate         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
-  friendly_name: ESP33 Gate Controller     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
+  friendly_name: ESP32 Gate Controller     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
 
   wifi_ap_timeout: 2min    # default to 2 minute timeout for yaml file as package.
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_control
-  project_ver_num: "1.0.0"
+  project_ver_num: "1.0.1"
   project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-collection/dc-esp32-gate.yaml
+  sub_import_url: github://buzzkc/docker-dust-collection/gate_update.yaml
   
   mqtt_broker: "0.0.0.0"
   mqtt_prefix: "buzzkc/dc" 
