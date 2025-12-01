@@ -43,6 +43,7 @@ esphome:
     priority: 800
     then:
       - logger.log: "Setting gate to closed on startup"
+      - delay: 6s
       - servo.write:
           id: gate_1
           level: -100%
