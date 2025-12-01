@@ -254,7 +254,7 @@ sensor:
       #name: "Sonoff S31 Current"
       accuracy_decimals: 2
       filters:
-        - throttle_average: 1s
+        - throttle: 500ms
       on_value_range:
       - above: !lambda 'return id(current_trigger) + .01;'
         then:
