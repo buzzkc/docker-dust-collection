@@ -7,7 +7,7 @@ substitutions:
   #
   #
 
-  device_name: dc-esp32-gate         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  name: dc-esp32-gate         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
   friendly_name: ESP32 Gate Controller     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
@@ -25,7 +25,7 @@ substitutions:
   sub_import_url: github://buzzkc/docker-dust-collection/gate-update.yaml@main
 
   sub_ota_num_attempts: '15'
-  
+  device_name: $name
   device_type: "gate"
   mqtt_prefix: "buzzkc/dc"
   led_pin: 2 
@@ -33,7 +33,7 @@ substitutions:
   servo2_pin: 23
 
 esphome:
-  name: ${device_name}
+  name: ${name}
   friendly_name: ${friendly_name}
   project:
     name: $project_name
