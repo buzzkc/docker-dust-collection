@@ -1,7 +1,7 @@
 # Git repo examples as a mapping
 packages:
   # shorthand form github://username/repository/[folder/]file-path.yml[@branch-or-tag]
-  remote_package_shorthand: github://buzzkc/docker-dust-collection/dc-esp32-gate.yaml@main
+  remote_package_shorthand: github://buzzkc/docker-dust-collection/gate-update.yaml@main
 
   remote_package_files:
     url: https://github.com/buzzkc/docker-dust-collection
