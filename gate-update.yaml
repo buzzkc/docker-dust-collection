@@ -4,7 +4,7 @@ packages:
   remote_package_shorthand: github://buzzkc/docker-dust-collection/gate-update.yaml@main
 
   remote_package_files:
-    url: https://github.com/buzzkc/docker-dust-collection
+    url: http://github.com/buzzkc/docker-dust-collection
     files: [dc-esp32-gate.yaml]  # optional; if not specified, all files will be included
     ref: main  # optional
     refresh: 1d  # optional
