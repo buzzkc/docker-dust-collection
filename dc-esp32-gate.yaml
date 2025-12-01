@@ -22,7 +22,7 @@ substitutions:
   project_ver_num: "1.0.1"
   project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-collection/gate_update.yaml@main
+  sub_import_url: github://buzzkc/docker-dust-collection/gate-update.yaml@main
 
   sub_ota_num_attempts: '15'
   
