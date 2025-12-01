@@ -7,7 +7,7 @@ substitutions:
   #
   #
 
-  name: dc-esp32-gate         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  device_name: dc-esp32-gate         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
   friendly_name: ESP33 Gate Controller     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
@@ -39,7 +39,7 @@ esp32:
 # https://esphome.io/components/esphome.html
 esphome:
 
-  name: $name
+  name: $device_name
   friendly_name: $friendly_name
   # Automatically add the mac address to the name
   # so you can use a single firmware for all devices
