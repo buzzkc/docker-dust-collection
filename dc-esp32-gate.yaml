@@ -43,7 +43,7 @@ esphome:
     priority: 800
     then:
       - logger.log: "Setting gate to closed on startup"
-      - delay: 6s
+      - delay: 1s
       - servo.write:
           id: gate_1
           level: -100%
@@ -51,7 +51,6 @@ esphome:
           id: gate_2
           level: -100%
       - output.turn_off: gpio_led
-      - script.execute: led_heartbeat
       - lambda: |-
           id(gate_map) = std::map<int, servo::Servo*>{
             {1, id(gate_1)},
@@ -113,6 +112,8 @@ mqtt:
   discovery: false
   topic_prefix: ${mqtt_prefix}/${device_name}
   reboot_timeout: 0s
+  on_connect:
+    - script.execute: led_heartbeat
   birth_message:
     topic: ${mqtt_prefix}/${device_name}/birth
     payload: "{\"type\":\"${device_type}\", \"state\":\"birth\"}"
