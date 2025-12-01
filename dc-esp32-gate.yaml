@@ -51,6 +51,7 @@ esphome:
           id: gate_2
           level: -100%
       - output.turn_off: gpio_led
+      - script.execute: led_heartbeat
       - lambda: |-
           id(gate_map) = std::map<int, servo::Servo*>{
             {1, id(gate_1)},
@@ -79,6 +80,8 @@ dashboard_import:
 
 # https://esphome.io/components/wifi.html
 wifi:
+  on_connect:
+    - output.turn_on: gpio_led
   ap:
     ap_timeout: $wifi_ap_timeout
 
@@ -112,8 +115,6 @@ mqtt:
   discovery: false
   topic_prefix: ${mqtt_prefix}/${device_name}
   reboot_timeout: 0s
-  on_connect:
-    - script.execute: led_heartbeat
   birth_message:
     topic: ${mqtt_prefix}/${device_name}/birth
     payload: "{\"type\":\"${device_type}\", \"state\":\"birth\"}"
@@ -233,5 +234,5 @@ script:
             - output.turn_on: gpio_led
             - delay: 100ms
             - output.turn_off: gpio_led
-            - delay: 1500ms
+            - delay: 1700ms
  
