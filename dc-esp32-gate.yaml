@@ -25,7 +25,7 @@ substitutions:
   sub_import_url: github://buzzkc/docker-dust-collection/gate-update.yaml@main
 
   sub_ota_num_attempts: '15'
-  device_name: $name
+  device_name: ${name}
   device_type: "gate"
   mqtt_prefix: "buzzkc/dc"
   led_pin: 2 
