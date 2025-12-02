@@ -9,5 +9,5 @@ packages:
       - path: dc-s31-tool-sensor.yaml
         vars:
           device_name: ${name} #override with current sensors name
-    ref: main  # optional
+    ref: v1.0  # optional
     refresh: 1d  # optional
