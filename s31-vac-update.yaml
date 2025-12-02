@@ -1,10 +1,14 @@
 # Git repo examples as a mapping
 packages:
   # shorthand form github://username/repository/[folder/]file-path.yml[@branch-or-tag]
-  remote_package_shorthand: github://buzzkc/docker-dust-collection/s31-vac-update.yaml@main
+  #remote_package_shorthand: github://buzzkc/docker-dust-collection/s31-vac-update.yaml@main
 
   remote_package_files:
     url: https://github.com/buzzkc/docker-dust-collection
-    files: [dc-s31-vac-control.yaml]  # optional; if not specified, all files will be included
+    files:
+      - path: dc-s31-vac-control.yaml
+        vars:
+          device_name: ${name} #override with current sensors name
+    ref: main  # optional
     ref: main  # optional
     refresh: 1d  # optional
