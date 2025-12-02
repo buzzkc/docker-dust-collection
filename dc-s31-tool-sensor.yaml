@@ -240,7 +240,7 @@ binary_sensor:
                   snprintf(buffer, sizeof(buffer), "{\"name\": \"${device_name}\", \"command\":%s}", (id(relay_1).state)?"\"unlock\"":"\"lock\"");
                   return std::string(buffer);
     - min_length: 15000ms
-      max_length: 300000ms
+      max_length: 30000ms
       then:
         - button.press: factory_reset_trigger
 
