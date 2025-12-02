@@ -7,7 +7,7 @@ substitutions:
   #
   #
 
-  device_name: dc-s31-vac-control         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  name: dc-s31-vac-control         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
   friendly_name: Dust Collector Vac Control     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
@@ -19,10 +19,10 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_vac_control
-  project_ver_num: "1.0.1"
-  project_ver_let: t
+  project_ver_num: "1.0.3"
+  project_ver_let: v
 
-  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-vac-control.yaml@main
+  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-vac-control.yaml@v1
 
   sub_ota_num_attempts: '15'
   
@@ -44,7 +44,7 @@ esp8266:
 # https://esphome.io/components/esphome.html
 esphome:
 
-  name: $device_name
+  name: $name
   friendly_name: $friendly_name
   # Automatically add the mac address to the name
   # so you can use a single firmware for all devices
