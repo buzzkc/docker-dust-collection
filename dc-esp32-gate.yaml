@@ -27,6 +27,7 @@ substitutions:
   sub_ota_num_attempts: '15'
   device_name: ${name}
   device_type: "gate"
+  mqtt_broker: mqtt_broker: "0.0.0.0"
   mqtt_prefix: "buzzkc/dc"
   led_pin: 2 
   servo1_pin: 22 
@@ -112,7 +113,7 @@ globals:
     restore_value: no
 
 mqtt:
-  broker: !secret mqtt_broker  # 🔹 Replace with your MQTT broker IP or hostname, or set it in secrets for key mqtt_broker
+  broker: $mqtt_broker  # 🔹 Replace with your MQTT broker IP or hostname, or set it in secrets for key mqtt_broker
   discovery: false
   topic_prefix: ${mqtt_prefix}/${device_name}
   reboot_timeout: 0s

@@ -119,7 +119,7 @@ globals:
     initial_value: "true"
 
 mqtt:
-  broker: !secret mqtt_broker  # 🔹 Replace with your MQTT broker IP or hostname
+  broker: $mqtt_broker  # 🔹 Replace with your MQTT broker IP or hostname
   discovery: false
   topic_prefix: ${mqtt_prefix}/${device_name}
   reboot_timeout: 0s
