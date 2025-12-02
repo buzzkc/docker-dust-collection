@@ -5,6 +5,9 @@ packages:
 
   remote_package_files:
     url: http://github.com/buzzkc/docker-dust-collection
-    files: [dc-esp32-gate.yaml]  # optional; if not specified, all files will be included
+    files: 
+      - path: dc-esp32-gate.yaml  # optional; if not specified, all files will be included
+        vars:
+          device_name: ${name}
     ref: main  # optional
     refresh: 1d  # optional

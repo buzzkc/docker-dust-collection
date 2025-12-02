@@ -38,7 +38,6 @@ esp32:
 
 # https://esphome.io/components/esphome.html
 esphome:
-
   name: $name
   friendly_name: $friendly_name
   # Automatically add the mac address to the name
