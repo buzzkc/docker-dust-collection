@@ -22,7 +22,7 @@ substitutions:
   project_ver_num: "1.0.9"
   project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml@v1
+  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml@v1.0
 
   sub_ota_num_attempts: '15'
   
@@ -238,10 +238,22 @@ binary_sensor:
                   char buffer[64];
                   snprintf(buffer, sizeof(buffer), "{\"name\": \"${device_name}\", \"command\":%s}", (id(relay_1).state)?"\"unlock\"":"\"lock\"");
                   return std::string(buffer);
+    - min_length: 15000ms
+      max_length: 300000ms
+      then:
+        - button.press: factory_reset_trigger
 
   - platform: status
     id: platform_status
     #name: "Sonoff S31 Status"
+
+button:
+  - platform: factory_reset
+    id: factory_reset_trigger
+    name: "Restart with Factory Default Settings"
+    on_press:
+      # Optional: Add a log message when the reset is triggered
+      - logger.log: "Factory reset initiated by physical button press!"
 
 sensor:
   - platform: wifi_signal

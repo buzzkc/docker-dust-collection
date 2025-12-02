@@ -309,36 +309,51 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: true
     id: button
-    filters:
-      - delayed_on: 50ms    # debounce for press
-      - delayed_off: 50ms   # debounce for release
-    on_press:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                  return (id(off_routine_running) == false) && id(relay).state;
-            then:
-              - lambda: 'id(relay_trigger_source) = "manual";'
-              - script.execute: toggle_relay
-              - script.wait: relay_off_routine
-              - mqtt.publish:
-                  topic: ${mqtt_prefix}/${device_name}/manual
-                  payload: !lambda | 
-                    char buffer[64];
-                    snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\"}");
-                    return std::string(buffer);
+    #filters:
+    #  - delayed_on: 50ms    # debounce for press
+    #  - delayed_off: 50ms   # debounce for release
+    on_click:
+      - min_length: 50ms
+        max_length: 500ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                    return (id(off_routine_running) == false) && id(relay).state;
+              then:
+                - lambda: 'id(relay_trigger_source) = "manual";'
+                - script.execute: toggle_relay
+                - script.wait: relay_off_routine
+                - mqtt.publish:
+                    topic: ${mqtt_prefix}/${device_name}/manual
+                    payload: !lambda | 
+                      char buffer[64];
+                      snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"off\"}");
+                      return std::string(buffer);
               
-            else:  
-              - lambda: 'id(relay_trigger_source) = "button";'
-              - script.execute: toggle_relay
-              - mqtt.publish:
-                  topic: ${mqtt_prefix}/${device_name}/manual
-                  payload: !lambda | 
-                    char buffer[64];
-                    snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\"}");
-                    return std::string(buffer);
+              else:  
+                - lambda: 'id(relay_trigger_source) = "button";'
+                - script.execute: toggle_relay
+                - mqtt.publish:
+                    topic: ${mqtt_prefix}/${device_name}/manual
+                    payload: !lambda | 
+                      char buffer[64];
+                      snprintf(buffer, sizeof(buffer), "{\"type\":\"${device_type}\", \"status\":\"on\"}");
+                      return std::string(buffer);
+      - min_length: 15000ms
+        max_length: 300000ms
+        then:
+          - button.press: factory_reset_trigger
 
+
+button:
+  - platform: factory_reset
+    id: factory_reset_trigger
+    name: "Restart with Factory Default Settings"
+    on_press:
+      # Optional: Add a log message when the reset is triggered
+      - logger.log: "Factory reset initiated by physical button press!"
+      
 interval:
   - interval: 30s
     then:

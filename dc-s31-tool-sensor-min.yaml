@@ -7,26 +7,20 @@ substitutions:
   #
   #
 
-  name: dc-s31-vac-control         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  name: dc-s31-tool-sensor         # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
 
-  friendly_name: Dust Collector Vac Control     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
-
-  #disable_entities:  "true"    # set to "false" to have all entities show up in Home Assistant automatically
-  #disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
+  friendly_name: Dust Collector Tool Sensor     # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE ****
 
   wifi_ap_timeout: 2min    # default to 2 minute timeout for yaml file as package.
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
-  project_name: buzzkc.dust_collector_vac_control
-  project_ver_num: "1.0.3"
-  project_ver_let: v
+  project_name: buzzkc.dust_collector_control
+  project_ver_num: "1.0.0"
+  project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-vac-control.yaml@v1
-
-  sub_ota_num_attempts: '15'
+  sub_import_url: github://buzzkc/docker-dust-collection/dc-s31-tool-sensor.yaml@v1.0
   
-  device_type: "controller"
   mqtt_broker: "0.0.0.0"
   mqtt_prefix: "buzzkc/dc" 
   relay_pin: 12 # Relay
@@ -36,10 +30,12 @@ substitutions:
   switch_pin: 0 # Push button
   current_pin: 0 # A0
 
+
 # https://esphome.io/components/esp8266.html
 esp8266:
   board: esp12e
   early_pin_init: false
+
 
 # https://esphome.io/components/esphome.html
 esphome:

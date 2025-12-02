@@ -19,7 +19,7 @@ substitutions:
   project_ver_num: "1.0.1"
   project_ver_let: g
 
-  sub_import_url: github://buzzkc/docker-dust-collection/gate-update.yaml@v1
+  sub_import_url: github://buzzkc/docker-dust-collection/gate-update.yaml@v1.0
   
   mqtt_broker: "0.0.0.0"
   mqtt_prefix: "buzzkc/dc" 
