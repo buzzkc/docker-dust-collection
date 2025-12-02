@@ -16,10 +16,10 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_control
-  project_ver_num: "1.0.0"
+  project_ver_num: "1.0.10"
   project_ver_let: t
 
-  sub_import_url: github://buzzkc/docker-dust-collection/s31-tool-update.yaml@v1.0
+  sub_import_url: github://buzzkc/docker-dust-collection/s31-tool-update.yaml
   
   mqtt_broker: "0.0.0.0"
   mqtt_prefix: "buzzkc/dc" 

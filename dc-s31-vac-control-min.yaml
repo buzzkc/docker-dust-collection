@@ -19,10 +19,10 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: buzzkc.dust_collector_vac_control
-  project_ver_num: "1.0.3"
+  project_ver_num: "1.0.10"
   project_ver_let: v
 
-  sub_import_url: github://buzzkc/docker-dust-collection/s31-vac-update.yaml@v1.0
+  sub_import_url: github://buzzkc/docker-dust-collection/s31-vac-update.yaml
 
   sub_ota_num_attempts: '15'
   
