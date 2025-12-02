@@ -309,7 +309,7 @@ binary_sensor:
       number: ${switch_pin}
       mode: INPUT_PULLUP
       inverted: true
-    id: button
+    id: button1
     #filters:
     #  - delayed_on: 50ms    # debounce for press
     #  - delayed_off: 50ms   # debounce for release
