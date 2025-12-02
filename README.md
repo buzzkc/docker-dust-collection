@@ -39,7 +39,7 @@ project-root/
 
 ```bash
 # Clone repo
-git clone https://github.com/yourusername/docker-dust-collector.git
+git clone https://github.com/buzzkc/docker-dust-collector.git
 cd docker-dust-collector
 
 # Create .env
