@@ -324,7 +324,7 @@ binary_sensor:
               then:
                 - lambda: 'id(relay_trigger_source) = "manual";'
                 - script.execute: toggle_relay
-                - script.wait: relay_off_routine
+                #- script.wait: relay_off_routine
                 - mqtt.publish:
                     topic: ${mqtt_prefix}/${device_name}/manual
                     payload: !lambda | 
