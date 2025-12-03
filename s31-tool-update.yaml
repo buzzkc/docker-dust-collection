@@ -4,7 +4,7 @@ packages:
   #remote_package_shorthand: github://buzzkc/docker-dust-collection/s31-tool-update.yaml@main
 
   remote_package_files:
-    url: https://github.com/buzzkc/docker-dust-collection
+    url: https://github.com/buzzkc/docker-dust-collection@v1.0.11
     files: 
       - path: dc-s31-tool-sensor.yaml
         vars:
