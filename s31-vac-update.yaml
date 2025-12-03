@@ -4,8 +4,9 @@ packages:
   #remote_package_shorthand: github://buzzkc/docker-dust-collection/s31-vac-update.yaml@main
 
   remote_package_files:
-    url: https://github.com/buzzkc/docker-dust-collection@v1.0.11
+    url: https://github.com/buzzkc/docker-dust-collection
     files:
       - path: dc-s31-vac-control.yaml
         vars:
           device_name: ${name} #override with current sensors name
+        ref: v1.0.11
